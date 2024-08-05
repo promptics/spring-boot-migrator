@@ -714,33 +714,32 @@ public class ResponseEntityReplacementTest {
     @Test
     void temporaryRedirect() {
 
-        String javaSource = ""
-                + "import javax.ws.rs.core.Response;\n"
-                + "import java.net.URI;\n"
-                + "\n"
-                + "public class TestController {\n"
-                + "\n"
-                + "    public Response respond() {\n"
-                + "       URI uri = URI.create(\"https://spring.io\");\n"
-                + "       return Response.temporaryRedirect(uri).build();\n"
-                + "    }\n"
-                + "}\n"
-                + "";
+        String javaSource = """
+                import javax.ws.rs.core.Response;
+                import java.net.URI;
+                
+                public class TestController {
+                
+                    public Response respond() {
+                       URI uri = URI.create("https://spring.io");
+                       return Response.temporaryRedirect(uri).build();
+                    }
+                }
+                """;
 
-        String expected = ""
-                + "import org.springframework.http.HttpStatus;\n"
-                + "import org.springframework.http.ResponseEntity;\n"
-                + "\n"
-                + "import java.net.URI;\n"
-                + "\n"
-                + "public class TestController {\n"
-                + "\n"
-                + "    public ResponseEntity respond() {\n"
-                + "       URI uri = URI.create(\"https://spring.io\");\n"
-                + "       return ResponseEntity.status(HttpStatus.TEMPORARY_REDIRECT).location(uri).build();\n"
-                + "    }\n"
-                + "}\n"
-                + "";
+        String expected = """
+                import org.springframework.http.HttpStatus;
+                import org.springframework.http.ResponseEntity;
+                import java.net.URI;
+                
+                public class TestController {
+                
+                    public ResponseEntity respond() {
+                       URI uri = URI.create("https://spring.io");
+                       return ResponseEntity.status(HttpStatus.TEMPORARY_REDIRECT).location(uri).build();
+                    }
+                }
+                """;
 
         ProjectContext projectContext = TestProjectContext.buildProjectContext()
                 .withBuildFileHavingDependencies(

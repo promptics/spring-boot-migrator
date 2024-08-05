@@ -237,39 +237,39 @@ public class ResponseBuilderTest {
     @Test
     void replaceAll() {
 
-        String javaSource = ""
-                + "import javax.ws.rs.core.MultivaluedMap;\n"
-                + "import javax.ws.rs.core.Response.ResponseBuilder;\n"
-                + "\n"
-                + "public class TestController {\n"
-                + "\n"
-                + "    public ResponseBuilder test() {\n"
-                + "        ResponseBuilder b;\n"
-                + "        MultivaluedMap m;\n"
-                + "        b.replaceAll(m);\n"
-                + "        return b;\n"
-                + "    }\n"
-                + "}\n"
-                + "";
+        String javaSource = """
+                import javax.ws.rs.core.MultivaluedMap;
+                import javax.ws.rs.core.Response.ResponseBuilder;
+                                
+                public class TestController {
+                                
+                    public ResponseBuilder test() {
+                        ResponseBuilder b;
+                        MultivaluedMap m;
+                        b.replaceAll(m);
+                        return b;
+                    }
+                }
+                """;
 
-        String expected = ""
-                + "import org.springframework.http.ResponseEntity;\n"
-                + "\n"
-                + "import javax.ws.rs.core.MultivaluedMap;\n"
-                + "\n"
-                + "public class TestController {\n"
-                + "\n"
-                + "    public ResponseEntity.BodyBuilder test() {\n"
-                + "        ResponseEntity.BodyBuilder b;\n"
-                + "        MultivaluedMap m;\n"
-                + "        b.headers(h -> {\n"
-                + "            h.clear();\n"
-                + "            h.addAll(m);\n"
-                + "        });\n"
-                + "        return b;\n"
-                + "    }\n"
-                + "}\n"
-                + "";
+        String expected = """
+                import org.springframework.http.ResponseEntity;
+                                
+                import javax.ws.rs.core.MultivaluedMap;
+                                
+                public class TestController {
+                                
+                    public ResponseEntity.BodyBuilder test() {
+                        ResponseEntity.BodyBuilder b;
+                        MultivaluedMap m;
+                        b.headers(h -> {
+                            h.clear();
+                            h.addAll(m);
+                        });
+                        return b;
+                    }
+                }
+                """;
 
         ProjectContext projectContext = TestProjectContext.buildProjectContext()
                 .withBuildFileHavingDependencies(
