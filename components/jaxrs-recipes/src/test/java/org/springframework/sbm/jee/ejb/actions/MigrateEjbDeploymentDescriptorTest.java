@@ -145,32 +145,38 @@ class MigrateEjbDeploymentDescriptorTest {
     void givenDeploymentDescriptorContainsEjbWithRemoteInterface_whenMatchingClassIsFound_thenStatelessRemoteAnnotationShouldBeGenerated() {
         // setup fixture
         String javaSource =
-                "package com.example.jee.ejb.stateless.local.deploymentdescriptor;\n" +
-                        "import javax.ejb.Stateless;\n" +
-                        "public class RemoteInterfaceView implements RemoteInterface{}";
+                """
+                package com.example.jee.ejb.stateless.local.deploymentdescriptor;
+                import javax.ejb.Stateless;
+                public class RemoteInterfaceView implements RemoteInterface{}
+                """;
 
-        String expected = "package com.example.jee.ejb.stateless.local.deploymentdescriptor;\n" +
-                "import javax.ejb.Remote;\n" +
-                "import javax.ejb.Stateless;\n" +
-                "\n" +
-                "@Stateless(name = \"" + EJB_WITH_REMOTE_INTERFACE_NAME + "\")\n" +
-                "@Remote(" + REMOTE_EJB_INTERFACE + ".class)\n" +
-                "public class RemoteInterfaceView implements RemoteInterface {}";
+        String expected = """
+                package com.example.jee.ejb.stateless.local.deploymentdescriptor;
+                import javax.ejb.Remote;
+                import javax.ejb.Stateless;
+                                
+                @Remote(com.example.jee.ejb.stateless.local.deploymentdescriptor.RemoteInterface.class)
+                @Stateless(name = "RemoteInterfaceView")
+                public class RemoteInterfaceView implements RemoteInterface {}
+                """;
 
-        String deploymentDescriptorXml = "<ejb-jar xmlns=\"http://xmlns.jcp.org/xml/ns/javaee\"\n" +
-                "      xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\"\n" +
-                "      xsi:schemaLocation=\"http://xmlns.jcp.org/xml/ns/javaee\n" +
-                "      http://xmlns.jcp.org/xml/ns/javaee/ejb-jar_3_2.xsd\"\n" +
-                "      version=\"3.2\">\n" +
-                "    <enterprise-beans>\n" +
-                "        <session>\n" +
-                "    <ejb-name>" + EJB_WITH_REMOTE_INTERFACE_NAME + "</ejb-name>\n" +
-                "    <ejb-class>" + EJB_WITH_REMOTE_INTERFACE_FQDN + "</ejb-class>\n" +
-                "    <remote>" + REMOTE_EJB_INTERFACE + "</remote>\n" +
-                "    <session-type>" + EJB_TYPE + "</session-type>\n" +
-                "        </session>\n" +
-                "    </enterprise-beans>\n" +
-                "</ejb-jar>";
+        String deploymentDescriptorXml = """
+                <ejb-jar xmlns="http://xmlns.jcp.org/xml/ns/javaee"
+                      xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                      xsi:schemaLocation="http://xmlns.jcp.org/xml/ns/javaee
+                      http://xmlns.jcp.org/xml/ns/javaee/ejb-jar_3_2.xsd"
+                      version="3.2">
+                    <enterprise-beans>
+                        <session>
+                    <ejb-name>RemoteInterfaceView</ejb-name>
+                    <ejb-class>com.example.jee.ejb.stateless.local.deploymentdescriptor.RemoteInterfaceView</ejb-class>
+                    <remote>com.example.jee.ejb.stateless.local.deploymentdescriptor.RemoteInterface</remote>
+                    <session-type>Stateless</session-type>
+                        </session>
+                    </enterprise-beans>
+                </ejb-jar>
+                """;
 
         ProjectContext projectContext = TestProjectContext.buildProjectContext()
                 .withProjectResource(Path.of("./src/main/resources/META-INF/ejb-jar.xml"), deploymentDescriptorXml)
@@ -203,8 +209,8 @@ class MigrateEjbDeploymentDescriptorTest {
                 "import javax.ejb.Local;\n" +
                 "import javax.ejb.Stateless;\n" +
                 "\n" +
-                "@Stateless(name = \"" + EJB_WITH_LOCAL_INTERFACE_NAME + "\")\n" +
                 "@Local(" + LOCAL_EJB_INTERFACE + ".class)\n" +
+                "@Stateless(name = \"" + EJB_WITH_LOCAL_INTERFACE_NAME + "\")\n" +
                 "public class LocalInterfaceView implements LocalInterface {}";
 
         String deploymentDescriptorXml = "<ejb-jar xmlns=\"http://xmlns.jcp.org/xml/ns/javaee\"\n" +

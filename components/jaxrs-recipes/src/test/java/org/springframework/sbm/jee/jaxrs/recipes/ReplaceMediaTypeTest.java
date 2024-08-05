@@ -15,19 +15,12 @@
  */
 package org.springframework.sbm.jee.jaxrs.recipes;
 
-import org.openrewrite.java.JavaParser;
-import org.springframework.rewrite.parser.RewriteExecutionContext;
-import org.springframework.rewrite.parser.SpringRewriteProperties;
+import org.junit.jupiter.api.Test;
+import org.springframework.sbm.engine.context.ProjectContext;
 import org.springframework.sbm.engine.recipe.AbstractAction;
 import org.springframework.sbm.java.api.JavaSource;
-import org.springframework.sbm.engine.context.ProjectContext;
-import org.springframework.sbm.java.impl.RewriteJavaParser;
-import org.springframework.sbm.project.resource.SbmApplicationProperties;
 import org.springframework.sbm.project.resource.TestProjectContext;
 import org.springframework.sbm.testhelper.common.utils.TestDiff;
-import org.junit.jupiter.api.Test;
-
-import java.util.function.Supplier;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -485,8 +478,9 @@ class ReplaceMediaTypeTest {
                 """;
 
         String expected = """
-                import java.util.Map;
                 import org.springframework.http.MediaType;
+
+                import java.util.Map;
 
                 public class TestController {
 
@@ -536,6 +530,7 @@ class ReplaceMediaTypeTest {
                 """
                         import javax.ws.rs.Path;
                         import javax.ws.rs.PathParam;
+                        
                         import org.springframework.http.MediaType;
                         import org.springframework.web.bind.annotation.RequestMapping;
                         import org.springframework.web.bind.annotation.RequestMethod;

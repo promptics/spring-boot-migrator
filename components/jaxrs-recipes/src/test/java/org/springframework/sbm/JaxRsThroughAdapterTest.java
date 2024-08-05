@@ -130,7 +130,7 @@ public class JaxRsThroughAdapterTest {
         @Test
         public void simple() {
             rewriteRun(
-//                    (spec) -> spec.expectedCyclesThatMakeChanges(2),
+                    (spec) -> spec.expectedCyclesThatMakeChanges(1),
                     mavenProject("project",
                             Assertions.java(
                                     //language=Java
@@ -242,53 +242,53 @@ public class JaxRsThroughAdapterTest {
                                     
                                     }
                                     """
-//                                    ,
+                                    ,
                                     //language=Java
-//                                    """
-//                                    package com.example.jee.app;
-//
-//                                    import org.springframework.web.bind.annotation.RequestMapping;
-//                                    import org.springframework.web.bind.annotation.RequestMethod;
-//                                    import org.springframework.web.bind.annotation.RestController;
-//
-//                                    import javax.ws.rs.DefaultValue;
-//                                    import javax.ws.rs.PathParam;
-//                                    import javax.ws.rs.QueryParam;
-//                                    import javax.ws.rs.core.MediaType;
-//                                    import javax.ws.rs.core.Response;
-//
-//                                    import static javax.ws.rs.core.MediaType.APPLICATION_JSON;
-//                                    import javax.ws.rs.core.Response.Status.Family;
-//
-//
-//                                    @RestController
-//                                    @RequestMapping(value = "/", produces = "application/json")
-//                                    public class PersonController {
-//
-//                                        @RequestMapping(value = "/json/{name}", consumes = "application/json", method = RequestMethod.POST)
-//                                        public String getHelloWorldJSON(@PathParam("name") String name) throws Exception {
-//                                            System.out.println("name: " + name);
-//                                            return "{\\"Hello\\":\\"" + name + "\\"";
-//                                        }
-//
-//                                        @RequestMapping(value = "/json", produces = APPLICATION_JSON, consumes = APPLICATION_JSON, method = RequestMethod.GET)
-//                                        public String getAllPersons(@QueryParam("q") String searchBy, @DefaultValue("0") @QueryParam("page") int page) throws Exception {
-//                                            return "{\\"message\\":\\"No person here...\\"";
-//                                        }
-//
-//
-//                                        @RequestMapping(value = "/xml/{name}", produces = MediaType.APPLICATION_XML, consumes = MediaType.APPLICATION_XML, method = RequestMethod.POST)
-//                                        public String getHelloWorldXML(@PathParam("name") String name) throws Exception {
-//                                            System.out.println("name: " + name);
-//                                            return "<xml>Hello "+name+"</xml>";
-//                                        }
-//
-//                                        private boolean isResponseStatusSuccessful(Response.Status.Family family) {
-//                                            return family == Family.SUCCESSFUL;
-//                                        }
-//
-//                                    }
-//                                    """
+                                    """
+                                    package com.example.jee.app;
+
+                                    import org.springframework.web.bind.annotation.RequestMapping;
+                                    import org.springframework.web.bind.annotation.RequestMethod;
+                                    import org.springframework.web.bind.annotation.RestController;
+
+                                    import javax.ws.rs.DefaultValue;
+                                    import javax.ws.rs.PathParam;
+                                    import javax.ws.rs.QueryParam;
+                                    import javax.ws.rs.core.MediaType;
+                                    import javax.ws.rs.core.Response;
+
+                                    import static javax.ws.rs.core.MediaType.APPLICATION_JSON;
+                                    import javax.ws.rs.core.Response.Status.Family;
+
+
+                                    @RestController
+                                    @RequestMapping(value = "/", produces = "application/json")
+                                    public class PersonController {
+
+                                        @RequestMapping(value = "/json/{name}", consumes = "application/json", method = RequestMethod.POST)
+                                        public String getHelloWorldJSON(@PathParam("name") String name) throws Exception {
+                                            System.out.println("name: " + name);
+                                            return "{\\"Hello\\":\\"" + name + "\\"";
+                                        }
+
+                                        @RequestMapping(value = "/json", produces = APPLICATION_JSON, consumes = APPLICATION_JSON, method = RequestMethod.GET)
+                                        public String getAllPersons(@QueryParam("q") String searchBy, @DefaultValue("0") @QueryParam("page") int page) throws Exception {
+                                            return "{\\"message\\":\\"No person here...\\"";
+                                        }
+
+
+                                        @RequestMapping(value = "/xml/{name}", produces = MediaType.APPLICATION_XML, consumes = MediaType.APPLICATION_XML, method = RequestMethod.POST)
+                                        public String getHelloWorldXML(@PathParam("name") String name) throws Exception {
+                                            System.out.println("name: " + name);
+                                            return "<xml>Hello "+name+"</xml>";
+                                        }
+
+                                        private boolean isResponseStatusSuccessful(Response.Status.Family family) {
+                                            return family == Family.SUCCESSFUL;
+                                        }
+
+                                    }
+                                    """
                             ),
                             pomXml(
                                     //language=xml

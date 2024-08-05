@@ -28,53 +28,54 @@ class MigrateJeeTransactionsToSpringBootActionTest {
 
     @Test
     void migrateTransactionAnnotations() {
-        String given =
-                "import javax.ejb.*;\n" +
-                        "@TransactionManagement(TransactionManagementType.CONTAINER)\n" +
-                        "@TransactionAttribute(TransactionAttributeType.REQUIRES_NEW)\n" +
-                        "public class TransactionalService {\n" +
-                        "   public void requiresNewFromType() {}\n" +
-                        "   @TransactionAttribute(TransactionAttributeType.NOT_SUPPORTED)\n" +
-                        "   public void notSupported() {}\n" +
-                        "   @TransactionAttribute(TransactionAttributeType.MANDATORY)\n" +
-                        "   public void mandatory() {}\n" +
-                        "   @TransactionAttribute(TransactionAttributeType.REQUIRES_NEW)\n" +
-                        "   public void requiresNew() {}\n" +
-                        "   @TransactionAttribute(TransactionAttributeType.REQUIRED)\n" +
-                        "   public void required() {}\n" +
-                        "   @TransactionAttribute(TransactionAttributeType.NEVER)\n" +
-                        "   public void never() {}\n" +
-                        "   @TransactionAttribute(TransactionAttributeType.SUPPORTS)\n" +
-                        "   public void supports() {}\n" +
-                        "}";
+        String given = """
+                import javax.ejb.*;
+                @TransactionManagement(TransactionManagementType.CONTAINER)
+                @TransactionAttribute(TransactionAttributeType.REQUIRES_NEW)
+                public class TransactionalService {
+                   public void requiresNewFromType() {}
+                   @TransactionAttribute(TransactionAttributeType.NOT_SUPPORTED)
+                   public void notSupported() {}
+                   @TransactionAttribute(TransactionAttributeType.MANDATORY)
+                   public void mandatory() {}
+                   @TransactionAttribute(TransactionAttributeType.REQUIRES_NEW)
+                   public void requiresNew() {}
+                   @TransactionAttribute(TransactionAttributeType.REQUIRED)
+                   public void required() {}
+                   @TransactionAttribute(TransactionAttributeType.NEVER)
+                   public void never() {}
+                   @TransactionAttribute(TransactionAttributeType.SUPPORTS)
+                   public void supports() {}
+                }
+                """;
 
-        String expected =
-                "import org.springframework.transaction.annotation.Propagation;\n" +
-                        "import org.springframework.transaction.annotation.Transactional;\n" +
-                        "\n" +
-                        "\n" +
-                        "@Transactional(propagation = Propagation.REQUIRES_NEW)\n" +
-                        "public class TransactionalService {\n" +
-                        "   public void requiresNewFromType() {}\n" +
-                        "\n" +
-                        "    @Transactional(propagation = Propagation.NOT_SUPPORTED)\n" +
-                        "    public void notSupported() {}\n" +
-                        "\n" +
-                        "    @Transactional(propagation = Propagation.MANDATORY)\n" +
-                        "    public void mandatory() {}\n" +
-                        "\n" +
-                        "    @Transactional(propagation = Propagation.REQUIRES_NEW)\n" +
-                        "    public void requiresNew() {}\n" +
-                        "\n" +
-                        "    @Transactional(propagation = Propagation.REQUIRED)\n" +
-                        "    public void required() {}\n" +
-                        "\n" +
-                        "    @Transactional(propagation = Propagation.NEVER)\n" +
-                        "    public void never() {}\n" +
-                        "\n" +
-                        "    @Transactional(propagation = Propagation.SUPPORTS)\n" +
-                        "    public void supports() {}\n" +
-                        "}";
+        String expected = """
+                import org.springframework.transaction.annotation.Propagation;
+                import org.springframework.transaction.annotation.Transactional;
+                                
+                @Transactional(propagation = Propagation.REQUIRES_NEW)
+                public class TransactionalService {
+                   public void requiresNewFromType() {}
+                                
+                   @Transactional(propagation = Propagation.NOT_SUPPORTED)
+                   public void notSupported() {}
+                                
+                   @Transactional(propagation = Propagation.MANDATORY)
+                   public void mandatory() {}
+                                
+                   @Transactional(propagation = Propagation.REQUIRES_NEW)
+                   public void requiresNew() {}
+                                
+                   @Transactional(propagation = Propagation.REQUIRED)
+                   public void required() {}
+                                
+                   @Transactional(propagation = Propagation.NEVER)
+                   public void never() {}
+                                
+                   @Transactional(propagation = Propagation.SUPPORTS)
+                   public void supports() {}
+                }
+                """;
 
         MigrateJeeTransactionsToSpringBootAction sut = new MigrateJeeTransactionsToSpringBootAction();
 

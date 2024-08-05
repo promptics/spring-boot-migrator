@@ -25,39 +25,40 @@ public class ReplaceMdbAnnotationWithJmsListenerTest {
     void testReplaceMdbAnnotation() {
 
         String given =
-                "import javax.ejb.ActivationConfigProperty;\n"
-                        + "import javax.ejb.MessageDriven;\n"
-                        + "import javax.jms.Message;\n"
-                        + "import javax.jms.MessageListener;\n"
-                        + "\n"
-                        + "@MessageDriven(activationConfig = {\n"
-                        + "    @ActivationConfigProperty(propertyName = \"destinationType\", \n"
-                        + "        propertyValue = \"javax.jms.Queue\"),\n"
-                        + "    @ActivationConfigProperty(propertyName = \"destinationLookup\", \n"
-                        + "        propertyValue = \"java:app/jms/CargoHandledQueue\")\n"
-                        + "})\n"
-                        + "public class CargoHandledConsumer implements MessageListener {\n"
-                        + "\n"
-                        + "    @Override\n"
-                        + "    public void onMessage(Message message) {\n"
-                        + "    }\n"
-                        + "}\n"
-                        + "";
+                        """
+                        import javax.ejb.ActivationConfigProperty;
+                        import javax.ejb.MessageDriven;
+                        import javax.jms.Message;
+                        import javax.jms.MessageListener;
+                        
+                        @MessageDriven(activationConfig = {
+                            @ActivationConfigProperty(propertyName = "destinationType",\s
+                                propertyValue = "javax.jms.Queue"),
+                            @ActivationConfigProperty(propertyName = "destinationLookup",\s
+                                propertyValue = "java:app/jms/CargoHandledQueue")
+                        })
+                        public class CargoHandledConsumer implements MessageListener {
+                        
+                            @Override
+                            public void onMessage(Message message) {
+                            }
+                        }
+                        """;
 
         String expected =
-                "import org.springframework.jms.annotation.JmsListener;\n"
-                        + "import org.springframework.stereotype.Component;\n"
-                        + "\n"
-                        + "import javax.jms.Message;\n"
-                        + "\n"
-                        + "@Component\n"
-                        + "public class CargoHandledConsumer {\n"
-                        + "\n"
-                        + "    @JmsListener(destination = \"CargoHandledQueue\")\n"
-                        + "    public void onMessage(Message message) {\n"
-                        + "    }\n"
-                        + "}\n"
-                        + "";
+                        """
+                        import javax.jms.Message;
+                        import org.springframework.jms.annotation.JmsListener;
+                        import org.springframework.stereotype.Component;
+                        
+                        @Component
+                        public class CargoHandledConsumer {
+                        
+                            @JmsListener(destination = "CargoHandledQueue")
+                            public void onMessage(Message message) {
+                            }
+                        }
+                        """;
 
         JavaMigrationActionTestSupport.verify(given, expected, new ReplaceMdbAnnotationWithJmsListener(),
                 "javax:javaee-api:7.0",

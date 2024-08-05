@@ -15,18 +15,17 @@
  */
 package org.springframework.sbm.jee.jaxrs.recipes;
 
-import org.openrewrite.java.tree.J;
+import org.junit.jupiter.api.Test;
+import org.openrewrite.SourceFile;
 import org.springframework.rewrite.parser.RewriteExecutionContext;
 import org.springframework.rewrite.parser.SpringRewriteProperties;
-import org.springframework.sbm.engine.recipe.AbstractAction;
 import org.springframework.sbm.engine.context.ProjectContext;
+import org.springframework.sbm.engine.recipe.AbstractAction;
 import org.springframework.sbm.java.impl.RewriteJavaParser;
-import org.springframework.sbm.project.resource.SbmApplicationProperties;
 import org.springframework.sbm.project.resource.TestProjectContext;
 import org.springframework.sbm.testhelper.common.utils.TestDiff;
-import org.junit.jupiter.api.Test;
 
-import java.util.List;
+import java.util.stream.Stream;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -63,6 +62,7 @@ public class ResponseBuilderTest {
 
         String expected = ""
                 + "import java.util.Set;\n"
+                + "\n"
                 + "import org.springframework.http.HttpMethod;\n"
                 + "import org.springframework.http.ResponseEntity;\n"
                 + "\n"
@@ -111,8 +111,9 @@ public class ResponseBuilderTest {
                 + "";
 
         String expected = ""
-                + "import java.util.Date;\n"
                 + "import org.springframework.http.ResponseEntity;\n"
+                + "\n"
+                + "import java.util.Date;\n"
                 + "\n"
                 + "public class TestController {\n"
                 + "\n"
@@ -157,6 +158,7 @@ public class ResponseBuilderTest {
 
         String expected = ""
                 + "import java.util.Locale;\n"
+                + "\n"
                 + "import org.springframework.http.HttpHeaders;\n"
                 + "import org.springframework.http.ResponseEntity;\n"
                 + "\n"
@@ -204,8 +206,9 @@ public class ResponseBuilderTest {
                 + "";
 
         String expected = ""
-                + "import java.util.Date;\n"
                 + "import org.springframework.http.ResponseEntity;\n"
+                + "\n"
+                + "import java.util.Date;\n"
                 + "\n"
                 + "public class TestController {\n"
                 + "\n"
@@ -233,38 +236,39 @@ public class ResponseBuilderTest {
     @Test
     void replaceAll() {
 
-        String javaSource = """
-                import javax.ws.rs.core.MultivaluedMap;
-                import javax.ws.rs.core.Response.ResponseBuilder;
-                                
-                public class TestController {
-                                
-                    public ResponseBuilder test() {
-                        ResponseBuilder b;
-                        MultivaluedMap m;
-                        b.replaceAll(m);
-                        return b;
-                    }
-                }
-                """;
+        String javaSource = ""
+                + "import javax.ws.rs.core.MultivaluedMap;\n"
+                + "import javax.ws.rs.core.Response.ResponseBuilder;\n"
+                + "\n"
+                + "public class TestController {\n"
+                + "\n"
+                + "    public ResponseBuilder test() {\n"
+                + "        ResponseBuilder b;\n"
+                + "        MultivaluedMap m;\n"
+                + "        b.replaceAll(m);\n"
+                + "        return b;\n"
+                + "    }\n"
+                + "}\n"
+                + "";
 
-        String expected = """
-                import javax.ws.rs.core.MultivaluedMap;
-                import org.springframework.http.ResponseEntity;
-                                
-                public class TestController {
-                                
-                    public ResponseEntity.BodyBuilder test() {
-                        ResponseEntity.BodyBuilder b;
-                        MultivaluedMap m;
-                        b.headers(h -> {
-                            h.clear();
-                            h.addAll(m);
-                        });
-                        return b;
-                    }
-                }
-                """;
+        String expected = ""
+                + "import org.springframework.http.ResponseEntity;\n"
+                + "\n"
+                + "import javax.ws.rs.core.MultivaluedMap;\n"
+                + "\n"
+                + "public class TestController {\n"
+                + "\n"
+                + "    public ResponseEntity.BodyBuilder test() {\n"
+                + "        ResponseEntity.BodyBuilder b;\n"
+                + "        MultivaluedMap m;\n"
+                + "        b.headers(h -> {\n"
+                + "            h.clear();\n"
+                + "            h.addAll(m);\n"
+                + "        });\n"
+                + "        return b;\n"
+                + "    }\n"
+                + "}\n"
+                + "";
 
         ProjectContext projectContext = TestProjectContext.buildProjectContext()
                 .withBuildFileHavingDependencies(
@@ -371,11 +375,8 @@ public class ResponseBuilderTest {
         String actual = projectContext.getProjectJavaSources().list().get(0).print();
 
         // verify it compiles
-        List<J.CompilationUnit> parse = new RewriteJavaParser(new SpringRewriteProperties(),
-                                                              new RewriteExecutionContext())
-                .parse(actual)
-                .map(J.CompilationUnit.class::cast)
-                .toList();
+        Stream<SourceFile> parse = new RewriteJavaParser(new SpringRewriteProperties(),
+                                                              new RewriteExecutionContext()).parse(actual);
 
         assertThat(actual)
                 .as(TestDiff.of(actual, expected))
