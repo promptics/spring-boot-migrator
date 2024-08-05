@@ -369,28 +369,28 @@ public class ResponseEntityReplacementTest {
     @Test
     void testReplaceOkWithMediaTypeStringAndBody() {
 
-        String javaSource = ""
-                + "import javax.ws.rs.core.Response;\n"
-                + "\n"
-                + "public class TestController {\n"
-                + "\n"
-                + "    public Response respond() {\n"
-                + "       return Response.ok(\"All good!\", \"application/json\").build();\n"
-                + "    }\n"
-                + "}\n"
-                + "";
+        String javaSource = """
+                import javax.ws.rs.core.Response;
+                
+                public class TestController {
+                
+                    public Response respond() {
+                       return Response.ok("All good!", "application/json").build();
+                    }
+                }
+                """;
 
-        String expected = ""
-                + "import org.springframework.http.MediaType;\n"
-                + "import org.springframework.http.ResponseEntity;\n"
-                + "\n"
-                + "public class TestController {\n"
-                + "\n"
-                + "    public ResponseEntity respond() {\n"
-                + "       return ResponseEntity.ok().contentType(MediaType.parseMediaType(\"application/json\")).body(\"All good!\");\n"
-                + "    }\n"
-                + "}\n"
-                + "";
+        String expected = """
+                import org.springframework.http.MediaType;
+                import org.springframework.http.ResponseEntity;
+                
+                public class TestController {
+                
+                    public ResponseEntity respond() {
+                       return ResponseEntity.ok().contentType(MediaType.parseMediaType("application/json")).body("All good!");
+                    }
+                }
+                """;
 
         ProjectContext projectContext = TestProjectContext.buildProjectContext()
                 .withBuildFileHavingDependencies(
