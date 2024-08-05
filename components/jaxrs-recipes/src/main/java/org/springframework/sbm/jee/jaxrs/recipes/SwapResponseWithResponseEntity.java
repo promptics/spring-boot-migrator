@@ -37,7 +37,8 @@ import static org.springframework.sbm.java.migration.recipes.RewriteMethodInvoca
 
 public class SwapResponseWithResponseEntity extends Recipe {
 
-    public SwapResponseWithResponseEntity() {
+    @Override
+    public List<Recipe> getRecipeList() {
         List<Recipe> recipeList = new ArrayList<>();
 
         recipeList.add(new SwapStatusForHttpStatus());
@@ -365,6 +366,8 @@ public class SwapResponseWithResponseEntity extends Recipe {
         recipeList.add(new ReplaceResponseEntityBuilder());
 
         recipeList.add(new ChangeType("javax.ws.rs.core.Response", "org.springframework.http.ResponseEntity", false));
+
+        return recipeList;
     }
 
     private void markTopLevelInvocationWithTemplate(JavaVisitor<ExecutionContext> v, MethodInvocation m, String template) {
