@@ -21,6 +21,8 @@ import org.springframework.sbm.engine.recipe.AbstractAction;
 import org.springframework.sbm.project.resource.TestProjectContext;
 import org.springframework.sbm.testhelper.common.utils.TestDiff;
 
+import java.util.stream.Collectors;
+
 import static org.assertj.core.api.Assertions.assertThat;
 
 public class ResponseEntityReplacementTest {
@@ -509,7 +511,6 @@ public class ResponseEntityReplacementTest {
 
         String expected = ""
                 + "import org.springframework.http.ResponseEntity;\n"
-                + "\n"
                 + "import java.net.URI;\n"
                 + "\n"
                 + "public class TestController {\n"
@@ -641,7 +642,6 @@ public class ResponseEntityReplacementTest {
         String expected = ""
                 + "import org.springframework.http.HttpStatus;\n"
                 + "import org.springframework.http.ResponseEntity;\n"
-                + "\n"
                 + "import java.net.URI;\n"
                 + "\n"
                 + "public class TestController {\n"
@@ -759,87 +759,87 @@ public class ResponseEntityReplacementTest {
 
     @Test
     void instanceMethods() {
-        String javaSource = ""
-                + "import javax.ws.rs.core.Response;\n"
-                + "import javax.ws.rs.core.GenericType;\n"
-                + "import java.lang.annotation.Annotation;\n"
-                + "\n"
-                + "public class TestController {\n"
-                + "\n"
-                + "    public String respond() {\n"
-                + "        Response r =  Response.ok().build();\n"
-                + "        r.getAllowedMethods();\n"
-                + "        r.bufferEntity();\n"
-                + "        r.close();\n"
-                + "        r.getCookies();\n"
-                + "        r.getDate();\n"
-                + "        r.getEntity();\n"
-                + "        r.bufferEntity();\n"
-                + "        r.getEntityTag();\n"
-                + "        r.getHeaders();\n"
-                + "        r.getHeaderString(\"Accept\");\n"
-                + "        r.getLanguage();\n"
-                + "        r.getLastModified();\n"
-                + "        r.getLength();\n"
-                + "        r.getLink(\"Something\");\n"
-                + "        r.getLinkBuilder(\"Something\");\n"
-                + "        r.getLinks();\n"
-                + "        r.getLocation();\n"
-                + "        r.getMediaType();\n"
-                + "        r.getMetadata();\n"
-                + "        r.getStatus();\n"
-                + "        r.getStatusInfo();\n"
-                + "        r.getStringHeaders();\n"
-                + "        r.hasEntity();\n"
-                + "        r.hasLink(\"Something\");\n"
-                + "        r.readEntity(String.class, new Annotation[0]);\n"
-                + "        r.readEntity(GenericType.forInstance(\"Something\"));\n"
-                + "        r.readEntity(GenericType.forInstance(\"Something\"), new Annotation[0]);\n"
-                + "        return r.readEntity(String.class);\n"
-                + "    }\n"
-                + "}\n"
-                + "";
+        String javaSource = """
+                import javax.ws.rs.core.Response;
+                import javax.ws.rs.core.GenericType;
+                import java.lang.annotation.Annotation;
+                
+                public class TestController {
+                
+                    public String respond() {
+                        Response r =  Response.ok().build();
+                        r.getAllowedMethods();
+                        r.bufferEntity();
+                        r.close();
+                        r.getCookies();
+                        r.getDate();
+                        r.getEntity();
+                        r.bufferEntity();
+                        r.getEntityTag();
+                        r.getHeaders();
+                        r.getHeaderString("Accept");
+                        r.getLanguage();
+                        r.getLastModified();
+                        r.getLength();
+                        r.getLink("Something");
+                        r.getLinkBuilder("Something");
+                        r.getLinks();
+                        r.getLocation();
+                        r.getMediaType();
+                        r.getMetadata();
+                        r.getStatus();
+                        r.getStatusInfo();
+                        r.getStringHeaders();
+                        r.hasEntity();
+                        r.hasLink("Something");
+                        r.readEntity(String.class, new Annotation[0]);
+                        r.readEntity(GenericType.forInstance("Something"));
+                        r.readEntity(GenericType.forInstance("Something"), new Annotation[0]);
+                        return r.readEntity(String.class);
+                    }
+                }
+                """;
 
-        String expected = ""
-                + "import org.springframework.http.ResponseEntity;\n"
-                + "import java.util.Date;\n"
-                + "import java.util.stream.Collectors;\n"
-                + "\n"
-                + "public class TestController {\n"
-                + "\n"
-                + "    public String respond() {\n"
-                + "        ResponseEntity r =  ResponseEntity.ok().build();\n"
-                + "        r.getHeaders().getAllow().stream().map(m -> m.toString()).collect(Collectors.toList());\n"
-                + "        r.bufferEntity();\n"
-                + "        r.close();\n"
-                + "        r.getCookies();\n"
-                + "        new Date(r.getHeaders().getDate());\n"
-                + "        r.getBody();\n"
-                + "        r.bufferEntity();\n"
-                + "        r.getHeaders().getETag();\n"
-                + "        r.getHeaders();\n"
-                + "        r.getHeaders().get(\"Accept\").stream().collect(Collectors.joining(\", \"));\n"
-                + "        r.getHeaders().getContentLanguage();\n"
-                + "        new Date(r.getHeaders().getLastModified());\n"
-                + "        r.getHeaders().getContentLength();\n"
-                + "        r.getLink(\"Something\");\n"
-                + "        r.getLinkBuilder(\"Something\");\n"
-                + "        r.getLinks();\n"
-                + "        r.getHeaders().getLocation();\n"
-                + "        r.getHeaders().getContentType();\n"
-                + "        r.getHeaders();\n"
-                + "        r.getStatusCodeValue();\n"
-                + "        r.getStatusCode();\n"
-                + "        r.getHeaders();\n"
-                + "        r.hasBody();\n"
-                + "        r.hasLink(\"Something\");\n"
-                + "        r.getBody();\n"
-                + "        r.getBody();\n"
-                + "        r.getBody();\n"
-                + "        return r.getBody();\n"
-                + "    }\n"
-                + "}\n"
-                + "";
+        String expected = """
+                import org.springframework.http.ResponseEntity;
+                import java.util.Date;
+                import java.util.stream.Collectors;
+                
+                public class TestController {
+                
+                    public String respond() {
+                        ResponseEntity r =  ResponseEntity.ok().build();
+                        r.getHeaders().getAllow().stream().map(m -> m.toString()).collect(Collectors.toList());
+                        r.bufferEntity();
+                        r.close();
+                        r.getCookies();
+                        new Date(r.getHeaders().getDate());
+                        r.getBody();
+                        r.bufferEntity();
+                        r.getHeaders().getETag();
+                        r.getHeaders();
+                        r.getHeaders().get("Accept").stream().collect(Collectors.joining(", "));
+                        r.getHeaders().getContentLanguage();
+                        new Date(r.getHeaders().getLastModified());
+                        r.getHeaders().getContentLength();
+                        r.getLink("Something");
+                        r.getLinkBuilder("Something");
+                        r.getLinks();
+                        r.getHeaders().getLocation();
+                        r.getHeaders().getContentType();
+                        r.getHeaders();
+                        r.getStatusCodeValue();
+                        r.getStatusCode();
+                        r.getHeaders();
+                        r.hasBody();
+                        r.hasLink("Something");
+                        r.getBody();
+                        r.getBody();
+                        r.getBody();
+                        return r.getBody();
+                    }
+                }
+                """;
 
         ProjectContext projectContext = TestProjectContext.buildProjectContext()
                 .withBuildFileHavingDependencies(
@@ -859,29 +859,30 @@ public class ResponseEntityReplacementTest {
 
     @Test
     void chain_1() {
-        String javaSource = ""
-                + "import javax.ws.rs.core.Response;\n"
-                + "import javax.ws.rs.core.MediaType;\n"
-                + "\n"
-                + "public class TestController {\n"
-                + "\n"
-                + "    public Response respond() {\n"
-                + "       return Response.status(200).entity(\"Hello\").tag(\"My Tag\").type(MediaType.TEXT_PLAIN_TYPE).build();\n"
-                + "    }\n"
-                + "}\n"
-                + "";
+        String javaSource = """
+                import javax.ws.rs.core.Response;
+                import javax.ws.rs.core.MediaType;
+                
+                public class TestController {
+                
+                    public Response respond() {
+                       return Response.status(200).entity("Hello").tag("My Tag").type(MediaType.TEXT_PLAIN_TYPE).build();
+                    }
+                }
+                """;
 
-        String expected = ""
-                + "import org.springframework.http.MediaType;\n"
-                + "import org.springframework.http.ResponseEntity;\n"
-                + "\n"
-                + "public class TestController {\n"
-                + "\n"
-                + "    public ResponseEntity respond() {\n"
-                + "       return ResponseEntity.status(200).eTag(\"My Tag\").contentType(MediaType.TEXT_PLAIN).body(\"Hello\");\n"
-                + "    }\n"
-                + "}\n"
-                + "";
+        String expected = """
+                import org.springframework.http.MediaType;
+                
+                import org.springframework.http.ResponseEntity;
+                
+                public class TestController {
+                
+                    public ResponseEntity respond() {
+                       return ResponseEntity.status(200).eTag("My Tag").contentType(MediaType.TEXT_PLAIN).body("Hello");
+                    }
+                }
+                """;
 
         ProjectContext projectContext = TestProjectContext.buildProjectContext()
                 .withBuildFileHavingDependencies(
@@ -901,30 +902,30 @@ public class ResponseEntityReplacementTest {
 
     @Test
     void chain_2() {
-        String javaSource = ""
-                + "import javax.ws.rs.core.Response;\n"
-                + "import javax.ws.rs.core.Response.ResponseBuilder;\n"
-                + "import javax.ws.rs.core.MediaType;\n"
-                + "\n"
-                + "public class TestController {\n"
-                + "\n"
-                + "    public ResponseBuilder respond() {\n"
-                + "       return Response.status(200).entity(\"Hello\").tag(\"My Tag\").type(MediaType.TEXT_PLAIN_TYPE);\n"
-                + "    }\n"
-                + "}\n"
-                + "";
+        String javaSource = """
+                import javax.ws.rs.core.Response;
+                import javax.ws.rs.core.Response.ResponseBuilder;
+                import javax.ws.rs.core.MediaType;
+                
+                public class TestController {
+                
+                    public ResponseBuilder respond() {
+                       return Response.status(200).entity("Hello").tag("My Tag").type(MediaType.TEXT_PLAIN_TYPE);
+                    }
+                }
+                """;
 
-        String expected = ""
-                + "import org.springframework.http.MediaType;\n"
-                + "import org.springframework.http.ResponseEntity;\n"
-                + "\n"
-                + "public class TestController {\n"
-                + "\n"
-                + "    public ResponseEntity respond() {\n"
-                + "       return ResponseEntity.status(200).eTag(\"My Tag\").contentType(MediaType.TEXT_PLAIN).body(\"Hello\");\n"
-                + "    }\n"
-                + "}\n"
-                + "";
+        String expected = """
+                import org.springframework.http.MediaType;
+                import org.springframework.http.ResponseEntity;
+                
+                public class TestController {
+                
+                    public ResponseEntity respond() {
+                       return ResponseEntity.status(200).eTag("My Tag").contentType(MediaType.TEXT_PLAIN).body("Hello");
+                    }
+                }
+                """;
 
         ProjectContext projectContext = TestProjectContext.buildProjectContext()
                 .withBuildFileHavingDependencies(

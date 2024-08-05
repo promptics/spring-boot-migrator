@@ -20,6 +20,7 @@ import lombok.Value;
 import org.jetbrains.annotations.NotNull;
 import org.openrewrite.Cursor;
 import org.openrewrite.ExecutionContext;
+import org.openrewrite.TreeVisitor;
 import org.openrewrite.java.AddOrUpdateAnnotationAttribute;
 import org.openrewrite.java.JavaIsoVisitor;
 import org.openrewrite.java.tree.J;
@@ -62,12 +63,11 @@ public class CopyAnnotationAttributeVisitor extends JavaIsoVisitor<ExecutionCont
         if (sourceAnnotationAttributeValue.getValue() != null) {
             // If the annotation type is a shallow class then JavaType.getMethods is empty and AddOrUpdateAnnotationAttribute can't determine if the datatype of the attribute is String or not
             String targetAttributeValue = annotation.getType() instanceof JavaType.ShallowClass ? sourceAnnotationAttributeValue.getValueSource() : sourceAnnotationAttributeValue.getValue().toString();
-            JavaIsoVisitor<ExecutionContext> addOrUpdateAnnotationAttributeVisitor = (JavaIsoVisitor<ExecutionContext>) new AddOrUpdateAnnotationAttribute(targetAnnotationType, targetAttributeName, targetAttributeValue, false)
-                    .getVisitor();
+            TreeVisitor<?, ExecutionContext> visitor = new AddOrUpdateAnnotationAttribute(targetAnnotationType, targetAttributeName, targetAttributeValue, false).getVisitor();
             if (targetAnnotationOnlyHasOneLiteralArgument(a)) {
-                a = (J.Annotation) addOrUpdateAnnotationAttributeVisitor.visit(a, ctx, getCursor());
+                a = (J.Annotation) visitor.visit(a, ctx, getCursor());
             }
-            return (J.Annotation) addOrUpdateAnnotationAttributeVisitor.visit(a, ctx, getCursor());
+            return (J.Annotation) visitor.visit(a, ctx, getCursor());
         }
         return a;
     }
