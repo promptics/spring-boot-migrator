@@ -191,34 +191,33 @@ public class ResponseBuilderTest {
     @Test
     void lastModified() {
 
-        String javaSource = ""
-                + "import java.util.Date;\n"
-                + "import javax.ws.rs.core.Response.ResponseBuilder;\n"
-                + "\n"
-                + "public class TestController {\n"
-                + "\n"
-                + "    public ResponseBuilder test() {\n"
-                + "        ResponseBuilder b;\n"
-                + "        b.lastModified(new Date(100000));\n"
-                + "        return b;\n"
-                + "    }\n"
-                + "}\n"
-                + "";
+        String javaSource = """
+                import java.util.Date;
+                import javax.ws.rs.core.Response.ResponseBuilder;
+                
+                public class TestController {
+                
+                    public ResponseBuilder test() {
+                        ResponseBuilder b;
+                        b.lastModified(new Date(100000));
+                        return b;
+                    }
+                }
+                """;
 
-        String expected = ""
-                + "import org.springframework.http.ResponseEntity;\n"
-                + "\n"
-                + "import java.util.Date;\n"
-                + "\n"
-                + "public class TestController {\n"
-                + "\n"
-                + "    public ResponseEntity.BodyBuilder test() {\n"
-                + "        ResponseEntity.BodyBuilder b;\n"
-                + "        b.lastModified(new Date(100000).toInstant());\n"
-                + "        return b;\n"
-                + "    }\n"
-                + "}\n"
-                + "";
+        String expected = """
+                import java.util.Date;
+                import org.springframework.http.ResponseEntity;
+                
+                public class TestController {
+                
+                    public ResponseEntity.BodyBuilder test() {
+                        ResponseEntity.BodyBuilder b;
+                        b.lastModified(new Date(100000).toInstant());
+                        return b;
+                    }
+                }
+                """;
 
         ProjectContext projectContext = TestProjectContext.buildProjectContext()
                 .withBuildFileHavingDependencies("javax:javaee-api:8.0")
