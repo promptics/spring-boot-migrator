@@ -17,6 +17,7 @@ package org.springframework.sbm.java.migration.recipes;
 
 import lombok.RequiredArgsConstructor;
 import org.openrewrite.ExecutionContext;
+import org.openrewrite.NlsRewrite;
 import org.openrewrite.Recipe;
 import org.openrewrite.TreeVisitor;
 import org.openrewrite.java.AddImport;
@@ -38,11 +39,16 @@ public class RewriteMethodInvocation extends Recipe {
 
 	@Override
 	public String getDisplayName() {
-		return "Rewritre method invocation";
+		return "Rewrite method invocation";
 	}
-	
+
 	@Override
-	protected TreeVisitor<?, ExecutionContext> getVisitor() {
+	public @NlsRewrite.Description String getDescription() {
+		return getDisplayName();
+	}
+
+	@Override
+	public TreeVisitor<?, ExecutionContext> getVisitor() {
 		return new JavaVisitor<ExecutionContext>() {
 
 			@Override

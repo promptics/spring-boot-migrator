@@ -15,6 +15,7 @@
  */
 package org.springframework.sbm.jee.jaxrs.recipes;
 
+import org.openrewrite.NlsRewrite;
 import org.openrewrite.Recipe;
 import org.openrewrite.Tree;
 import org.openrewrite.java.ChangeType;
@@ -36,35 +37,36 @@ import static org.springframework.sbm.java.migration.recipes.RewriteMethodInvoca
 
 public class ReplaceResponseEntityBuilder extends Recipe {
 
-    public ReplaceResponseEntityBuilder() {
+    @Override
+    public List<Recipe> getRecipeList() {
+        List<Recipe> recipeList = new ArrayList<>();
+
         // #allow(String...)
-        doNext(new RewriteMethodInvocation(
+        recipeList.add(new RewriteMethodInvocation(
                         RewriteMethodInvocation.methodInvocationMatcher("javax.ws.rs.core.Response.ResponseBuilder allow(java.lang.String...)"),
                         (v, m, addImport) -> {
                             String transformedArgs = m.getArguments().stream().map(arg -> "HttpMethod.resolve(#{any()})").collect(Collectors.joining(", "));
-                            JavaTemplate t = JavaTemplate.builder(() -> v.getCursor(), "#{any(org.springframework.http.ResponseEntity.HeadersBuilder)}.allow(" + transformedArgs + ")").imports("org.springframework.http.HttpMethod", "org.springframework.http.ResponseEntity.HeadersBuilder").build();
+                            JavaTemplate t = JavaTemplate.builder("#{any(org.springframework.http.ResponseEntity.HeadersBuilder)}.allow(" + transformedArgs + ")").imports("org.springframework.http.HttpMethod", "org.springframework.http.ResponseEntity.HeadersBuilder").build();
 //			v.maybeAddImport("org.springframework.http.HttpMethod");
                             addImport.accept("org.springframework.http.HttpMethod");
                             List<Object> parameters = new ArrayList<Object>();
                             parameters.add(m.getSelect());
                             parameters.addAll(m.getArguments());
-                            return m.withTemplate(t, m.getCoordinates().replace(), parameters.toArray());
+                            return t.apply(v.getCursor(), m.getCoordinates().replace(), parameters.toArray());
                         }
                 )
         );
 
         // #allow(Set<String>)
-        doNext(new RewriteMethodInvocation(
+        recipeList.add(new RewriteMethodInvocation(
                         RewriteMethodInvocation.methodInvocationMatcher("javax.ws.rs.core.Response.ResponseBuilder allow(java.util.Set)"),
                         (v, m, addImport) -> {
-                            JavaTemplate t = JavaTemplate.builder(
-                                            () -> v.getCursor(),
-                                            "#{any(org.springframework.http.ResponseEntity.HeadersBuilder)}.allow(#{any()}.stream().map(HttpMethod::resolve).toArray(String[]::new))").imports("org.springframework.http.HttpMethod", "org.springframework.http.ResponseEntity.HeadersBuilder"
-                                    )
+                            JavaTemplate t = JavaTemplate.builder("#{any(org.springframework.http.ResponseEntity.HeadersBuilder)}.allow(#{any()}.stream().map(HttpMethod::resolve).toArray(String[]::new))")
+                                    .imports("org.springframework.http.HttpMethod", "org.springframework.http.ResponseEntity.HeadersBuilder")
                                     .build();
 //			v.maybeAddImport("org.springframework.http.HttpMethod");
                             addImport.accept("org.springframework.http.HttpMethod");
-                            return m.withTemplate(t, m.getCoordinates().replace(), m.getSelect(), m.getArguments().get(0));
+                            return t.apply(v.getCursor(), m.getCoordinates().replace(), m.getSelect(), m.getArguments().get(0));
                         }
                 )
         );
@@ -72,80 +74,77 @@ public class ReplaceResponseEntityBuilder extends Recipe {
         // #cacheControl(CacheControl)
 
         // #encoding(String)
-        doNext(new RewriteMethodInvocation(
+        recipeList.add(new RewriteMethodInvocation(
                         RewriteMethodInvocation.methodInvocationMatcher("javax.ws.rs.core.Response.ResponseBuilder encoding(java.lang.String)"),
                         (v, m, addImport) -> {
-                            JavaTemplate t = JavaTemplate.builder(
-                                            () -> v.getCursor(),
-                                            "#{any(org.springframework.http.ResponseEntity.HeadersBuilder)}.header(HttpHeaders.CONTENT_ENCODING, #{any()})"
-                                    )
+                            JavaTemplate t = JavaTemplate.builder("#{any(org.springframework.http.ResponseEntity.HeadersBuilder)}.header(HttpHeaders.CONTENT_ENCODING, #{any()})")
                                     .imports("org.springframework.http.HttpHeaders", "org.springframework.http.ResponseEntity.HeadersBuilder")
                                     .build();
                             addImport.accept("org.springframework.http.HttpHeaders");
-                            return m.withTemplate(t, m.getCoordinates().replace(), m.getSelect(), m.getArguments());
+                            return t.apply(v.getCursor(), m.getCoordinates().replace(), m.getSelect(), m.getArguments());
                         }
                 )
         );
 
         // #contentLocation(URI)
-        doNext(renameMethodInvocation(methodInvocationMatcher("javax.ws.rs.core.Response.ResponseBuilder contentLocation(java.net.URI)"), "location", "org.springframework.http.ResponseEntity.HeadersBuilder"));
+        recipeList.add(renameMethodInvocation(methodInvocationMatcher("javax.ws.rs.core.Response.ResponseBuilder contentLocation(java.net.URI)"), "location", "org.springframework.http.ResponseEntity.HeadersBuilder"));
 
         // #tag(String)
-        doNext(renameMethodInvocation(methodInvocationMatcher("javax.ws.rs.core.Response.ResponseBuilder tag(java.lang.String)"), "eTag", "org.springframework.http.ResponseEntity.HeadersBuilder"));
+        recipeList.add(renameMethodInvocation(methodInvocationMatcher("javax.ws.rs.core.Response.ResponseBuilder tag(java.lang.String)"), "eTag", "org.springframework.http.ResponseEntity.HeadersBuilder"));
 
         // #entity(Object)
         // #entity(Object, Annotation[])
-        doNext(new RewriteMethodInvocation(
+        recipeList.add(new RewriteMethodInvocation(
                         RewriteMethodInvocation.methodInvocationMatcher("javax.ws.rs.core.Response.ResponseBuilder entity(java.lang.Object, ..)"),
                         (v, m, addImport) -> {
                             VisitorUtils.markWrappingInvocationWithTemplate(v, m, new MethodMatcher("javax.ws.rs.core.Response.ResponseBuilder build()"), m.getArguments().get(0).print(), this);
-                            return m.withTemplate(JavaTemplate.builder(() -> v.getCursor(), "#{any(org.springframework.http.ResponseEntity.HeadersBuilder)}").build(), m.getCoordinates().replace(), m.getSelect());
+                            return JavaTemplate.builder("#{any(org.springframework.http.ResponseEntity.HeadersBuilder)}").build().apply(v.getCursor(), m.getCoordinates().replace(), m.getSelect());
                         }
                 )
         );
 
         // #expires(Date)
-        doNext(new RewriteMethodInvocation(
+        recipeList.add(new RewriteMethodInvocation(
                         RewriteMethodInvocation.methodInvocationMatcher("javax.ws.rs.core.Response.ResponseBuilder expires(java.util.Date)"),
                         (v, m, addImport) -> {
-                            JavaTemplate t = JavaTemplate.builder(() -> v.getCursor(), "#{any(org.springframework.http.ResponseEntity.HeadersBuilder)}.headers(h -> h.setExpires(#{any()}.toInstant()))")
+                            JavaTemplate t = JavaTemplate.builder("#{any(org.springframework.http.ResponseEntity.HeadersBuilder)}.headers(h -> h.setExpires(#{any()}.toInstant()))")
                                     .build();
-                            return m.withTemplate(t, m.getCoordinates().replace(), m.getSelect(), m.getArguments().get(0));
+                            return t.apply(v.getCursor(), m.getCoordinates().replace(), m.getSelect(), m.getArguments().get(0));
                         }
                 )
         );
 
         // #language(String)
-        doNext(new RewriteMethodInvocation(
+        recipeList.add(new RewriteMethodInvocation(
                         RewriteMethodInvocation.methodInvocationMatcher("javax.ws.rs.core.Response.ResponseBuilder language(java.lang.String)"),
                         (v, m, addImport) -> {
-                            JavaTemplate t = JavaTemplate.builder(() -> v.getCursor(), "#{any(org.springframework.http.ResponseEntity.HeadersBuilder)}.headers(h -> h.set(HttpHeaders.CONTENT_LANGUAGE, #{any()}))")
+                            JavaTemplate t = JavaTemplate.builder("#{any(org.springframework.http.ResponseEntity.HeadersBuilder)}.headers(h -> h.set(HttpHeaders.CONTENT_LANGUAGE, #{any()}))")
                                     .imports("org.springframework.http.HttpHeaders")
                                     .build();
                             addImport.accept("org.springframework.http.HttpHeaders");
-                            return m.withTemplate(t, m.getCoordinates().replace(), m.getSelect(), m.getArguments().get(0));
+                            return t.apply(v.getCursor(), m.getCoordinates().replace(), m.getSelect(), m.getArguments().get(0));
                         }
                 )
         );
 
         // #language(Locale)
-        doNext(new RewriteMethodInvocation(
+        recipeList.add(new RewriteMethodInvocation(
                         RewriteMethodInvocation.methodInvocationMatcher("javax.ws.rs.core.Response.ResponseBuilder language(java.util.Locale)"),
                         (v, m, addImport) -> {
-                            JavaTemplate t = JavaTemplate.builder(() -> v.getCursor(), "#{any(org.springframework.http.ResponseEntity.HeadersBuilder)}.headers(h -> h.setContentLanguage(#{any()}))")
+                            JavaTemplate t = JavaTemplate.builder("#{any(org.springframework.http.ResponseEntity.HeadersBuilder)}.headers(h -> h.setContentLanguage(#{any()}))")
                                     .build();
-                            return m.withTemplate(t, m.getCoordinates().replace(), m.getSelect(), m.getArguments().get(0));
+                            return t.apply(v.getCursor(), m.getCoordinates().replace(), m.getSelect(), m.getArguments().get(0));
                         }
                 )
         );
 
         // #lastModified(Date)
-        doNext(new RewriteMethodInvocation(
+        recipeList.add(new RewriteMethodInvocation(
                         RewriteMethodInvocation.methodInvocationMatcher("javax.ws.rs.core.Response.ResponseBuilder lastModified(java.util.Date)"),
                         (v, m, addImport) -> {
-                            JavaTemplate t = JavaTemplate.builder(() -> v.getCursor(), "#{any(org.springframework.http.ResponseEntity.HeadersBuilder)}.lastModified(#{any()}.toInstant())")
+                            JavaTemplate t = JavaTemplate.builder("#{any(org.springframework.http.ResponseEntity.HeadersBuilder)}.lastModified(#{any()}.toInstant())")
                                     .build();
-                            return m.withTemplate(t, m.getCoordinates().replace(), m.getSelect(), m.getArguments().get(0));
+                            return t.apply(v.getCursor(), m.getCoordinates().replace(), m.getSelect(), m.getArguments().get(0));
                         }
                 )
         );
@@ -153,45 +152,45 @@ public class ReplaceResponseEntityBuilder extends Recipe {
         // #location(URI) - present on Spring ResponseEntity builder classes, nothing to do
 
         // replaceAll(MultivaluedMap)
-        doNext(new RewriteMethodInvocation(
+        recipeList.add(new RewriteMethodInvocation(
                         RewriteMethodInvocation.methodInvocationMatcher("javax.ws.rs.core.Response.ResponseBuilder replaceAll(javax.ws.rs.core.MultivaluedMap)"),
                         (v, m, addImport) -> {
-                            JavaTemplate t = JavaTemplate.builder(() -> v.getCursor(), "#{any(org.springframework.http.ResponseEntity.HeadersBuilder)}.headers(h -> {\n"
+                            JavaTemplate t = JavaTemplate.builder("#{any(org.springframework.http.ResponseEntity.HeadersBuilder)}.headers(h -> {\n"
                                             + "h.clear();\n"
                                             + "h.addAll(#{any()});\n"
                                             + "})")
                                     .imports("org.springframework.util.MultiValueMap", "org.springframework.http.ResponseEntity.HeadersBuilder")
                                     .build();
-                            return m.withTemplate(t, m.getCoordinates().replace(), m.getSelect(), m.getArguments().get(0));
+                            return t.apply(v.getCursor(), m.getCoordinates().replace(), m.getSelect(), m.getArguments().get(0));
                         }
                 )
         );
 
         // #type(String)
-        doNext(new RewriteMethodInvocation(
+        recipeList.add(new RewriteMethodInvocation(
                         RewriteMethodInvocation.methodInvocationMatcher("javax.ws.rs.core.Response.ResponseBuilder type(java.lang.String)"),
                         (v, m, addImport) -> {
-                            JavaTemplate t = JavaTemplate.builder(() -> v.getCursor(), "#{any(org.springframework.http.ResponseEntity.HeadersBuilder)}.headers(h -> h.set(HttpHeaders.CONTENT_TYPE, #{any()}))")
+                            JavaTemplate t = JavaTemplate.builder("#{any(org.springframework.http.ResponseEntity.HeadersBuilder)}.headers(h -> h.set(HttpHeaders.CONTENT_TYPE, #{any()}))")
                                     .imports("org.springframework.http.HttpHeaders", "org.springframework.http.ResponseEntity.HeadersBuilder")
                                     .build();
-                            return m.withTemplate(t, m.getCoordinates().replace(), m.getSelect(), m.getArguments().get(0));
+                            return t.apply(v.getCursor(), m.getCoordinates().replace(), m.getSelect(), m.getArguments().get(0));
                         }
                 )
         );
 
         // #type(MediaType)
-        doNext(renameMethodInvocation(methodInvocationMatcher("javax.ws.rs.core.Response.ResponseBuilder type(javax.ws.rs.core.MediaType)"), "contentType", "org.springframework.http.ResponseEntity.HeadersBuilder"));
+        recipeList.add(renameMethodInvocation(methodInvocationMatcher("javax.ws.rs.core.Response.ResponseBuilder type(javax.ws.rs.core.MediaType)"), "contentType", "org.springframework.http.ResponseEntity.HeadersBuilder"));
 
         // #build()
         // FIXME: org.springframework.http.ResponseEntity.build() does not exist. Invalid: ResponseEntity r = ResponseEntity.ok("...").build();
-        doNext(new RewriteMethodInvocation(
+        recipeList.add(new RewriteMethodInvocation(
                         RewriteMethodInvocation.methodInvocationMatcher("javax.ws.rs.core.Response.ResponseBuilder build()"),
                         (v, m, addImport) -> {
                             MarkWithTemplate marker = m.getMarkers().findFirst(MarkWithTemplate.class).orElse(null);
                             if (marker != null) {
                                 m = VisitorUtils.removeMarker(m, marker);
-                                Builder t = JavaTemplate.builder(() -> v.getCursor(), "#{any(org.springframework.http.ResponseEntity.HeadersBuilder)}.body(#{})");
-                                m = m.withTemplate(t.build(), m.getCoordinates().replace(), m.getSelect(), marker.getTemplate());
+                                Builder t = JavaTemplate.builder("#{any(org.springframework.http.ResponseEntity.HeadersBuilder)}.body(#{})");
+                                m = t.build().apply(v.getCursor(), m.getCoordinates().replace(), m.getSelect(), marker.getTemplate());
                             }
                             return m.withMarkers(m.getMarkers().computeByType(new MarkReturnType(Tree.randomId(), this, "ResponseEntity", "org.springframework.http.ResponseEntity"), (o1, o2) -> o2));
                         }
@@ -217,32 +216,38 @@ public class ReplaceResponseEntityBuilder extends Recipe {
 
         // Always should be the last for method call migration
         // Take care of #body(Object) calls that were marked and should go at the end of method invocation chain
-        doNext(new RewriteMethodInvocation(
+        recipeList.add(new RewriteMethodInvocation(
                         m -> m.getMarkers().findFirst(MarkWithTemplate.class).isPresent(),
                         (v, m, addImport) -> {
                             MarkWithTemplate marker = m.getMarkers().findFirst(MarkWithTemplate.class).orElse(null);
                             m = VisitorUtils.removeMarker(m, marker);
-                            return m
-                                    .withTemplate(
-                                            JavaTemplate.builder(() -> v.getCursor(), "#{any(org.springframework.http.ResponseEntity.HeadersBuilder)}.body(#{}").build(),
-                                            m.getCoordinates().replace(),
-                                            m,
-                                            marker.getTemplate())
-                                    .withMarkers(m.getMarkers().computeByType(new MarkReturnType(Tree.randomId(), this, "ResponseEntity", "org.springframework.http.ResponseEntity"), (o1, o2) -> o2));
+                            JavaTemplate t = JavaTemplate.builder("#{any(org.springframework.http.ResponseEntity.HeadersBuilder)}.body(#{}").build();
+                            return
+                                    t.apply(v.getCursor(),
+                                                    m.getCoordinates().replace(),
+                                                    m,
+                                                    marker.getTemplate())
+                                            .withMarkers(m.getMarkers().computeByType(new MarkReturnType(Tree.randomId(), this, "ResponseEntity", "org.springframework.http.ResponseEntity"), (o1, o2) -> o2));
                         }
                 )
         );
 
-        doNext(new AdjustTypesFromExpressionMarkers());
+        recipeList.add(new AdjustTypesFromExpressionMarkers());
 
         // Finally replace type with BodyBuilder if nothing else replaced it previously
-        doNext(new ChangeType("javax.ws.rs.core.Response$ResponseBuilder", "org.springframework.http.ResponseEntity$BodyBuilder", true));
+        recipeList.add(new ChangeType("javax.ws.rs.core.Response$ResponseBuilder", "org.springframework.http.ResponseEntity$BodyBuilder", true));
 
+        return recipeList;
     }
 
     @Override
     public String getDisplayName() {
         return "Replace references to JAX-RS ReplaceResponseEntityBuilder";
+    }
+
+    @Override
+    public @NlsRewrite.Description String getDescription() {
+        return getDisplayName();
     }
 
 }

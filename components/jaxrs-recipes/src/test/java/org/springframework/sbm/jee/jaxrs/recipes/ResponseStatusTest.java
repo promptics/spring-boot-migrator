@@ -35,8 +35,7 @@ public class ResponseStatusTest {
             new AbstractAction() {
                 @Override
                 public void apply(ProjectContext context) {
-                    SwapStatusForHttpStatus r = new SwapStatusForHttpStatus(() -> new RewriteJavaParser(new SpringRewriteProperties(),
-                                                                                                        new RewriteExecutionContext()));
+                    SwapStatusForHttpStatus r = new SwapStatusForHttpStatus();
                     context.getProjectJavaSources().apply(r);
                 }
             };

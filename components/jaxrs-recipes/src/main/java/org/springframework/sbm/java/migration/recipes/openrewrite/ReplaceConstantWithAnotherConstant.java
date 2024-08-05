@@ -47,9 +47,11 @@ public class ReplaceConstantWithAnotherConstant extends Recipe {
         return "Replace constant with another constant, adding/removing import on class if needed.";
     }
 
-    @Override
+
+
+    // FIXME: (jaxrs) Call from visitor to decide if applicable
     protected TreeVisitor<?, ExecutionContext> getSingleSourceApplicableTest() {
-        return new UsesType<>(existingFullyQualifiedConstantName.substring(0,existingFullyQualifiedConstantName.lastIndexOf('.')));
+        return new UsesType<>(existingFullyQualifiedConstantName.substring(0,existingFullyQualifiedConstantName.lastIndexOf('.')), true);
     }
 
     @Override
@@ -79,11 +81,12 @@ public class ReplaceConstantWithAnotherConstant extends Recipe {
                     maybeRemoveImport(existingOwningType.substring(0, existingOwningType.indexOf('$')));
                 }
                 maybeAddImport(owningType, false);
-                return fieldAccess
-                        .withTemplate(
-                                JavaTemplate.builder(this::getCursor, template).imports(owningType).build(),
-                                fieldAccess.getCoordinates().replace())
+
+                fieldAccess = JavaTemplate.builder(template).imports(owningType).build()
+                        .apply(getCursor(), fieldAccess.getCoordinates().replace())
                         .withPrefix(fieldAccess.getPrefix());
+
+                return fieldAccess;
             }
             return super.visitFieldAccess(fieldAccess, executionContext);
         }
@@ -93,10 +96,11 @@ public class ReplaceConstantWithAnotherConstant extends Recipe {
             if (isConstant(ident.getFieldType()) && !isVariableDeclaration()) {
                 maybeRemoveImport(existingOwningType);
                 maybeAddImport(owningType, false);
-                return ident
-                        .withTemplate(
-                                JavaTemplate.builder(this::getCursor, template).imports(owningType).build(),
-                                ident.getCoordinates().replace())
+
+                return JavaTemplate.builder(template)
+                        .imports(owningType)
+                        .build()
+                        .apply(getCursor(), ident.getCoordinates().replace())
                         .withPrefix(ident.getPrefix());
             }
             return super.visitIdentifier(ident, executionContext);

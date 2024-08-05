@@ -15,6 +15,7 @@
  */
 package org.springframework.sbm.jee.jaxrs.recipes;
 
+import org.openrewrite.NlsRewrite;
 import org.openrewrite.Recipe;
 import org.openrewrite.java.ChangeType;
 import org.openrewrite.java.JavaParser;
@@ -27,6 +28,7 @@ import org.springframework.sbm.java.migration.recipes.RewriteConstructorInvocati
 import org.springframework.sbm.java.migration.recipes.RewriteMethodInvocation;
 import org.springframework.sbm.java.migration.recipes.openrewrite.ReplaceConstantWithAnotherConstant;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -36,7 +38,10 @@ import static org.springframework.sbm.java.migration.recipes.RewriteConstructorI
 
 public class ReplaceMediaType extends Recipe {
 
-    public ReplaceMediaType(Supplier<JavaParser> javaParserSupplier) {
+    @Override
+    public List<Recipe> getRecipeList() {
+
+        List<Recipe> recipeList = new ArrayList<>();
 
         // Constants
         Map<String, String> mappings = new HashMap<>();
@@ -83,15 +88,15 @@ public class ReplaceMediaType extends Recipe {
         mappings.put("WILDCARD_TYPE", "ALL");
 
         mappings.forEach(
-                (key, value) -> doNext(new ReplaceConstantWithAnotherConstant("javax.ws.rs.core.MediaType." + key,"org.springframework.http.MediaType." + value))
+                (key, value) -> recipeList.add(new ReplaceConstantWithAnotherConstant("javax.ws.rs.core.MediaType." + key,"org.springframework.http.MediaType." + value))
         );
 
-        doNext(new ReplaceConstantWithAnotherConstant("javax.ws.rs.core.MediaType.CHARSET_PARAMETER","org.springframework.util.MimeType.PARAM_CHARSET"));
-        doNext(new ReplaceConstantWithAnotherConstant("javax.ws.rs.core.MediaType.MEDIA_TYPE_WILDCARD","org.springframework.util.MimeType.WILDCARD_TYPE"));
+        recipeList.add(new ReplaceConstantWithAnotherConstant("javax.ws.rs.core.MediaType.CHARSET_PARAMETER","org.springframework.util.MimeType.PARAM_CHARSET"));
+        recipeList.add(new ReplaceConstantWithAnotherConstant("javax.ws.rs.core.MediaType.MEDIA_TYPE_WILDCARD","org.springframework.util.MimeType.WILDCARD_TYPE"));
 
         // instance methods
         // #isCompatible(MediaType)
-        doNext(new RewriteMethodInvocation(RewriteMethodInvocation.methodInvocationMatcher("javax.ws.rs.core.MediaType isCompatible(javax.ws.rs.core.MediaType)"), (v, m, addImport) -> {
+        recipeList.add(new RewriteMethodInvocation(RewriteMethodInvocation.methodInvocationMatcher("javax.ws.rs.core.MediaType isCompatible(javax.ws.rs.core.MediaType)"), (v, m, addImport) -> {
             JavaType type = JavaType.buildType("org.springframework.http.MediaType");
 
             J.Identifier newMethodName = m.getName().withSimpleName("isCompatibleWith");
@@ -107,14 +112,14 @@ public class ReplaceMediaType extends Recipe {
         }));
 
         // #withCharset(String)
-        doNext(new RewriteMethodInvocation(RewriteMethodInvocation.methodInvocationMatcher("javax.ws.rs.core.MediaType withCharset(java.lang.String)"), (v, m, addImport) -> {
-            JavaTemplate template = JavaTemplate.builder(() -> v.getCursor(), "new MediaType(#{any(org.springframework.http.MediaType)}, Charset.forName(#{any(java.lang.String)}))")
+        recipeList.add(new RewriteMethodInvocation(RewriteMethodInvocation.methodInvocationMatcher("javax.ws.rs.core.MediaType withCharset(java.lang.String)"), (v, m, addImport) -> {
+            JavaTemplate template = JavaTemplate.builder("new MediaType(#{any(org.springframework.http.MediaType)}, Charset.forName(#{any(java.lang.String)}))")
                     .imports("org.springframework.http.MediaType", "java.nio.charset.Charset")
                     .build();
             addImport.accept("java.nio.charset.Charset");
             addImport.accept("org.springframework.http.MediaType");
 
-            return m.withTemplate(template, m.getCoordinates().replace(), m.getSelect(), m.getArguments().get(0));
+            return template.apply(v.getCursor(), m.getCoordinates().replace(), m.getSelect(), m.getArguments().get(0));
         }));
 
         // #getParameters() - comes with org.springframework.util.MimeType#getParameters()
@@ -130,47 +135,54 @@ public class ReplaceMediaType extends Recipe {
         // constructors
 
         // MediaType() -> new MediaType(MimeType.WILDCARD_TYPE, MimeType.WILDCARD_TYPE)
-        doNext(new RewriteConstructorInvocation(constructorMatcher("javax.ws.rs.core.MediaType"), (v, m, addImport) -> {
-            JavaTemplate template = JavaTemplate.builder(() -> v.getCursor(), "new MediaType(MimeType.WILDCARD_TYPE, MimeType.WILDCARD_TYPE)")
+        recipeList.add(new RewriteConstructorInvocation(constructorMatcher("javax.ws.rs.core.MediaType"), (v, m, addImport) -> {
+            JavaTemplate template = JavaTemplate.builder("new MediaType(MimeType.WILDCARD_TYPE, MimeType.WILDCARD_TYPE)")
                     .imports("org.springframework.http.MediaType", "org.springframework.util.MimeType")
                     .build();
             addImport.accept("org.springframework.util.MimeType");
             addImport.accept("org.springframework.http.MediaType");
 
-            return m.withTemplate(template, m.getCoordinates().replace());
+            return template.apply(v.getCursor(), m.getCoordinates().replace());
         }));
 
         // MediaType(String, String) - present on Spring MediaType
-        doNext(new RewriteConstructorInvocation(constructorMatcher("javax.ws.rs.core.MediaType", "java.lang.String", "java.lang.String"), (v, m, addImport) -> {
+        recipeList.add(new RewriteConstructorInvocation(constructorMatcher("javax.ws.rs.core.MediaType", "java.lang.String", "java.lang.String"), (v, m, addImport) -> {
             JavaType type = JavaType.buildType("org.springframework.http.MediaType");
             return m.withConstructorType(m.getConstructorType().withDeclaringType(TypeUtils.asFullyQualified(type)));
         }));
 
         // MediaType(String, String, String) -> MediaType(String, String, Charset)
-        doNext(new RewriteConstructorInvocation(constructorMatcher("javax.ws.rs.core.MediaType", "java.lang.String", "java.lang.String", "java.lang.String"), (v, m, addImport) -> {
+        recipeList.add(new RewriteConstructorInvocation(constructorMatcher("javax.ws.rs.core.MediaType", "java.lang.String", "java.lang.String", "java.lang.String"), (v, m, addImport) -> {
             List<Expression> arguments = m.getArguments();
-            JavaTemplate template = JavaTemplate.builder(() -> v.getCursor(), "new MediaType(#{any(java.lang.String)}, #{any(java.lang.String)}, Charset.forName(#{any(java.lang.String)}))")
+            JavaTemplate template = JavaTemplate.builder("new MediaType(#{any(java.lang.String)}, #{any(java.lang.String)}, Charset.forName(#{any(java.lang.String)}))")
                     .imports("org.springframework.http.MediaType", "java.nio.charset.Charset")
                     .build();
             addImport.accept("java.nio.charset.Charset");
             addImport.accept("org.springframework.http.MediaType");
 
-            return m.withTemplate(template, m.getCoordinates().replace(), arguments.get(0), arguments.get(1), arguments.get(2));
+            return template.apply(v.getCursor(), m.getCoordinates().replace(), arguments.get(0), arguments.get(1), arguments.get(2));
         }));
 
         // MediaType(String, String, Map<String, String>) - present on Spring MediaType
-        doNext(new RewriteConstructorInvocation(constructorMatcher("javax.ws.rs.core.MediaType", "java.lang.String", "java.lang.String", "java.util.Map"), (v, m, addImport) -> {
+        recipeList.add(new RewriteConstructorInvocation(constructorMatcher("javax.ws.rs.core.MediaType", "java.lang.String", "java.lang.String", "java.util.Map"), (v, m, addImport) -> {
             JavaType type = JavaType.buildType("org.springframework.http.MediaType");
             return m.withConstructorType(m.getConstructorType().withDeclaringType(TypeUtils.asFullyQualified(type)));
         }));
 
         // Type references
-        doNext(new ChangeType("javax.ws.rs.core.MediaType", "org.springframework.http.MediaType", false));
+        recipeList.add(new ChangeType("javax.ws.rs.core.MediaType", "org.springframework.http.MediaType", false));
+
+        return recipeList;
     }
 
     @Override
     public String getDisplayName() {
         return "Replace JAX-RS MediaType with Spring MediaType";
+    }
+
+    @Override
+    public @NlsRewrite.Description String getDescription() {
+        return getDisplayName();
     }
 
 }
