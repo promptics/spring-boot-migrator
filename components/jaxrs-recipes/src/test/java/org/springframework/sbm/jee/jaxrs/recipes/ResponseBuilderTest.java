@@ -62,7 +62,6 @@ public class ResponseBuilderTest {
 
         String expected = ""
                 + "import java.util.Set;\n"
-                + "\n"
                 + "import org.springframework.http.HttpMethod;\n"
                 + "import org.springframework.http.ResponseEntity;\n"
                 + "\n"
@@ -110,20 +109,19 @@ public class ResponseBuilderTest {
                 + "}\n"
                 + "";
 
-        String expected = ""
-                + "import org.springframework.http.ResponseEntity;\n"
-                + "\n"
-                + "import java.util.Date;\n"
-                + "\n"
-                + "public class TestController {\n"
-                + "\n"
-                + "    public ResponseEntity.BodyBuilder test() {\n"
-                + "        ResponseEntity.BodyBuilder b;\n"
-                + "        b.headers(h -> h.setExpires(new Date(100000).toInstant()));\n"
-                + "        return b;\n"
-                + "    }\n"
-                + "}\n"
-                + "";
+        String expected = """
+                import java.util.Date;
+                import org.springframework.http.ResponseEntity;
+                
+                public class TestController {
+                
+                    public ResponseEntity.BodyBuilder test() {
+                        ResponseEntity.BodyBuilder b;
+                        b.headers(h -> h.setExpires(new Date(100000).toInstant()));
+                        return b;
+                    }
+                }
+                """;
 
         ProjectContext projectContext = TestProjectContext.buildProjectContext()
                 .withBuildFileHavingDependencies("javax:javaee-api:8.0")
@@ -156,22 +154,21 @@ public class ResponseBuilderTest {
                 + "}\n"
                 + "";
 
-        String expected = ""
-                + "import java.util.Locale;\n"
-                + "\n"
-                + "import org.springframework.http.HttpHeaders;\n"
-                + "import org.springframework.http.ResponseEntity;\n"
-                + "\n"
-                + "public class TestController {\n"
-                + "\n"
-                + "    public ResponseEntity.BodyBuilder test() {\n"
-                + "        ResponseEntity.BodyBuilder b;\n"
-                + "        b.headers(h -> h.set(HttpHeaders.CONTENT_LANGUAGE, \"ua\"));\n"
-                + "        b.headers(h -> h.setContentLanguage(Locale.ITALY));\n"
-                + "        return b;\n"
-                + "    }\n"
-                + "}\n"
-                + "";
+        String expected = """
+                import java.util.Locale;
+                import org.springframework.http.HttpHeaders;
+                import org.springframework.http.ResponseEntity;
+                
+                public class TestController {
+                
+                    public ResponseEntity.BodyBuilder test() {
+                        ResponseEntity.BodyBuilder b;
+                        b.headers(h -> h.set(HttpHeaders.CONTENT_LANGUAGE, "ua"));
+                        b.headers(h -> h.setContentLanguage(Locale.ITALY));
+                        return b;
+                    }
+                }
+                """;
 
         ProjectContext projectContext = TestProjectContext.buildProjectContext()
                 .withBuildFileHavingDependencies(

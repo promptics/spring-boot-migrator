@@ -40,6 +40,8 @@ public class MigrateJaxRsAnnotations_Test {
                 import com.example.jeerest.Movie;
                 import com.example.jeerest.MoviesBean;
                 import org.springframework.beans.factory.annotation.Autowired;
+                import org.springframework.web.bind.annotation.RequestMapping;
+                import org.springframework.web.bind.annotation.RequestMethod;
                                 
                 import javax.ws.rs.DELETE;
                 import javax.ws.rs.GET;
@@ -94,7 +96,9 @@ public class MigrateJaxRsAnnotations_Test {
                 import com.example.jeerest.Movie;
                 import com.example.jeerest.MoviesBean;
                 import org.springframework.beans.factory.annotation.Autowired;
-                
+                import org.springframework.web.bind.annotation.RequestMapping;
+                import org.springframework.web.bind.annotation.RequestMethod;
+
                 import javax.ws.rs.DELETE;
                 import javax.ws.rs.PUT;
                 import javax.ws.rs.Path;

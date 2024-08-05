@@ -509,7 +509,6 @@ public class ResponseEntityReplacementTest {
 
         String expected = ""
                 + "import org.springframework.http.ResponseEntity;\n"
-                + "\n"
                 + "import java.net.URI;\n"
                 + "\n"
                 + "public class TestController {\n"
@@ -641,7 +640,6 @@ public class ResponseEntityReplacementTest {
         String expected = ""
                 + "import org.springframework.http.HttpStatus;\n"
                 + "import org.springframework.http.ResponseEntity;\n"
-                + "\n"
                 + "import java.net.URI;\n"
                 + "\n"
                 + "public class TestController {\n"
@@ -730,7 +728,6 @@ public class ResponseEntityReplacementTest {
         String expected = ""
                 + "import org.springframework.http.HttpStatus;\n"
                 + "import org.springframework.http.ResponseEntity;\n"
-                + "\n"
                 + "import java.net.URI;\n"
                 + "\n"
                 + "public class TestController {\n"

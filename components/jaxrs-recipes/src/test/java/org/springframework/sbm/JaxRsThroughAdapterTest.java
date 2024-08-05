@@ -130,7 +130,7 @@ public class JaxRsThroughAdapterTest {
         @Test
         public void simple() {
             rewriteRun(
-                    (spec) -> spec.expectedCyclesThatMakeChanges(1),
+                    (spec) -> spec.expectedCyclesThatMakeChanges(2),
                     mavenProject("project",
                             Assertions.java(
                                     //language=Java
@@ -258,7 +258,7 @@ public class JaxRsThroughAdapterTest {
                                     import javax.ws.rs.core.Response;
 
                                     import static javax.ws.rs.core.MediaType.APPLICATION_JSON;
-                                    import javax.ws.rs.core.Response.Status.Family;
+                                    import static javax.ws.rs.core.Response.Status.Family;
 
 
                                     @RestController
