@@ -204,9 +204,8 @@ public class ResponseBuilderTest {
                 + "";
 
         String expected = ""
-                + "import org.springframework.http.ResponseEntity;\n"
-                + "\n"
                 + "import java.util.Date;\n"
+                + "import org.springframework.http.ResponseEntity;\n"
                 + "\n"
                 + "public class TestController {\n"
                 + "\n"
