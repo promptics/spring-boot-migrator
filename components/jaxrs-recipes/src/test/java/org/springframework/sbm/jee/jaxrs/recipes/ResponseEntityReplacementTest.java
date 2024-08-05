@@ -85,27 +85,25 @@ public class ResponseEntityReplacementTest {
     @Test
     void testUnsupportedBuilderCall() {
 
-        String javaSource = ""
-                + "import javax.ws.rs.core.Response;\n"
-                + "\n"
-                + "public class TestController {\n"
-                + "\n"
-                + "    public Response respond() {\n"
-                + "       return Response.status(200).tag(\"My Tag\").build();\n"
-                + "    }\n"
-                + "}\n"
-                + "";
+        String javaSource = """
+                import javax.ws.rs.core.Response;
+                
+                public class TestController {
+                    public Response respond() {
+                       return Response.status(200).tag("My Tag").build();
+                    }
+                }
+                """;
 
-        String expected = ""
-                + "import org.springframework.http.ResponseEntity;\n"
-                + "\n"
-                + "public class TestController {\n"
-                + "\n"
-                + "    public ResponseEntity respond() {\n"
-                + "       return ResponseEntity.status(200).eTag(\"My Tag\").build();\n"
-                + "    }\n"
-                + "}\n"
-                + "";
+        String expected = """
+                import org.springframework.http.ResponseEntity;
+                
+                public class TestController {
+                    public ResponseEntity respond() {
+                       return ResponseEntity.status(200).eTag("My Tag").build();
+                    }
+                }
+                """;
 
         ProjectContext projectContext = TestProjectContext.buildProjectContext()
                 .withBuildFileHavingDependencies(
