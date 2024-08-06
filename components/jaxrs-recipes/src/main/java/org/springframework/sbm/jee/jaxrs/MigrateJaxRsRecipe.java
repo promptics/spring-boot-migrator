@@ -55,15 +55,15 @@ public class MigrateJaxRsRecipe {
                 .condition(HasImportStartingWith.builder().value("javax.ws.rs").description("Any class has import starting with javax.ws.rs").build())
                 .actions(List.of(
 
-                                AddDependencies.builder()
-                                        .dependencies(
-                                                List.of(
-                                                        Dependency.builder().groupId("org.springframework.boot").artifactId("spring-boot-starter-web").version("2.3.4.RELEASE").build()
-                                                )
-                                        )
-                                        .description("Add spring-boot-starter-web dependency to build file.")
-                                        .condition(NoExactDependencyExist.builder().dependency(Dependency.builder().groupId("org.springframework.boot").artifactId("spring-boot-starter-web").build()).build())
-                                        .build(),
+//                                AddDependencies.builder()
+//                                        .dependencies(
+//                                                List.of(
+//                                                        Dependency.builder().groupId("org.springframework.boot").artifactId("spring-boot-starter-web").version("2.3.4.RELEASE").build()
+//                                                )
+//                                        )
+//                                        .description("Add spring-boot-starter-web dependency to build file.")
+//                                        .condition(NoExactDependencyExist.builder().dependency(Dependency.builder().groupId("org.springframework.boot").artifactId("spring-boot-starter-web").build()).build())
+//                                        .build(),
 
                                 ConvertJaxRsAnnotations.builder()
                                         .condition(HasTypeAnnotation.builder().annotation("javax.ws.rs.Path").build())

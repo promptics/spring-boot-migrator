@@ -95,8 +95,7 @@ public class JaxRsThroughAdapterTest {
                 """;
         // FIXME: Use Openrewrite to retrieve dependency Paths that must be on classpath
         // mvn dependency:build-classpath -Dmdep.outputFile=cp.txt
-        List<Path> deps = Arrays.stream("/Users/fkrueger/.m2/repository/org/jboss/spec/javax/ws/rs/jboss-jaxrs-api_2.1_spec/1.0.1.Final/jboss-jaxrs-api_2.1_spec-1.0.1.Final.jar".split(":")).map(d -> Path.of(d)).toList();
-        private JavaParser.Builder<? extends JavaParser, ?> javaParserBuilder = JavaParser.fromJavaVersion().logCompilationWarningsAndErrors(true).classpath(deps);
+        private JavaParser.Builder<? extends JavaParser, ?> javaParserBuilder = JavaParser.fromJavaVersion().logCompilationWarningsAndErrors(true);
 
         @Override
         public void defaults(RecipeSpec spec) {
@@ -111,20 +110,6 @@ public class JaxRsThroughAdapterTest {
                     .scanRuntimeClasspath("example.recipe")
                     .build()
                     .activateRecipes(RECIPE));
-        }
-
-        public static List<Path> getDependencyJarsForClasspath(String pom) {
-            try {
-                Xml.Document doc = (Xml.Document) MavenParser.builder().build().parse(pom).toList().get(0);
-                MavenResolutionResult resolutionResult = doc.getMarkers().findFirst(MavenResolutionResult.class).orElseThrow();
-                resolutionResult = resolutionResult.resolveDependencies(new MavenPomDownloader(Collections.emptyMap(), new InMemoryExecutionContext(), null, null), new InMemoryExecutionContext());
-                List<ResolvedDependency> resolvedDependencies = resolutionResult.getDependencies().get(Scope.Compile);
-                MavenArtifactDownloader downloader = new MavenArtifactDownloader(new LocalMavenArtifactCache(Paths.get(System.getProperty("user.home"), ".m2", "repository")), null, (t) -> {
-                });
-                return resolvedDependencies.stream().filter(d -> "jar".equals(d.getType())).map(downloader::downloadArtifact).toList();
-            } catch (MavenDownloadingExceptions e) {
-                throw new RuntimeException(e);
-            }
         }
 
         @Test
@@ -160,6 +145,8 @@ public class JaxRsThroughAdapterTest {
                                     """,
                                     //language=Java
                                     """
+                                    package com.example.jee.app;
+
                                     import org.springframework.web.bind.annotation.RequestMapping;
                                     import org.springframework.web.bind.annotation.RequestMethod;
                                     import org.springframework.web.bind.annotation.RestController;
@@ -192,7 +179,7 @@ public class JaxRsThroughAdapterTest {
 
             rewriteRun(
                     (spec) -> spec.expectedCyclesThatMakeChanges(2),
-                    mavenProject("project",
+                    mavenProject("", // this affects the resource getSourcePath()
                             Assertions.java(
                                     //language=Java
                                     """
@@ -242,56 +229,52 @@ public class JaxRsThroughAdapterTest {
                                     
                                     }
                                     """
-                                    ,
-                                    //language=Java
-                                    """
-                                    package com.example.jee.app;
+//                                    ,
+//                                    //language=Java
+//                                    """
+//                                    package com.example.jee.app;
+//
+//                                    import org.springframework.web.bind.annotation.RequestMapping;
+//                                    import org.springframework.web.bind.annotation.RequestMethod;
+//                                    import org.springframework.web.bind.annotation.RestController;
+//
+//                                    import org.springframework.http.HttpStatus;
+//                                    import org.springframework.http.HttpStatus.Series;
+//                                    import org.springframework.web.bind.annotation.PathVariable;
+//                                    import org.springframework.web.bind.annotation.RequestParam;
+//
+//
+//                                    @RestController
+//                                    @RequestMapping(value = "/", produces = "application/json")
+//                                    public class PersonController {
+//
+//                                        @RequestMapping(value = "/json/{name}", consumes = "application/json", method = RequestMethod.POST)
+//                                        public String getHelloWorldJSON(@PathVariable("name") String name) throws Exception {
+//                                            System.out.println("name: " + name);
+//                                            return "{\\"Hello\\":\\"" + name + "\\"";
+//                                        }
+//
+//                                        @RequestMapping(value = "/json", produces = APPLICATION_JSON, consumes = APPLICATION_JSON, method = RequestMethod.GET)
+//                                        public String getAllPersons(@RequestParam(required = false, value = "q") String searchBy, @RequestParam(required = false, defaultValue = "0", value = "page") int page) throws Exception {
+//                                            return "{\\"message\\":\\"No person here...\\"";
+//                                        }
+//
+//
+//                                        @RequestMapping(value = "/xml/{name}", produces = MediaType.APPLICATION_XML, consumes = MediaType.APPLICATION_XML, method = RequestMethod.POST)
+//                                        public String getHelloWorldXML(@PathVariable("name") String name) throws Exception {
+//                                            System.out.println("name: " + name);
+//                                            return "<xml>Hello "+name+"</xml>";
+//                                        }
+//
+//                                        private boolean isResponseStatusSuccessful(HttpStatus.Series family) {
+//                                            return family == Series.SUCCESSFUL;
+//                                        }
+//
+//                                    }
+//                                    """
 
-                                    import org.springframework.web.bind.annotation.RequestMapping;
-                                    import org.springframework.web.bind.annotation.RequestMethod;
-                                    import org.springframework.web.bind.annotation.RestController;
-
-                                    import javax.ws.rs.DefaultValue;
-                                    import javax.ws.rs.PathParam;
-                                    import javax.ws.rs.QueryParam;
-                                    import javax.ws.rs.core.MediaType;
-                                    import javax.ws.rs.core.Response;
-
-                                    import static javax.ws.rs.core.MediaType.APPLICATION_JSON;
-                                    import static javax.ws.rs.core.Response.Status.Family;
-
-
-                                    @RestController
-                                    @RequestMapping(value = "/", produces = "application/json")
-                                    public class PersonController {
-
-                                        @RequestMapping(value = "/json/{name}", consumes = "application/json", method = RequestMethod.POST)
-                                        public String getHelloWorldJSON(@PathParam("name") String name) throws Exception {
-                                            System.out.println("name: " + name);
-                                            return "{\\"Hello\\":\\"" + name + "\\"";
-                                        }
-
-                                        @RequestMapping(value = "/json", produces = APPLICATION_JSON, consumes = APPLICATION_JSON, method = RequestMethod.GET)
-                                        public String getAllPersons(@QueryParam("q") String searchBy, @DefaultValue("0") @QueryParam("page") int page) throws Exception {
-                                            return "{\\"message\\":\\"No person here...\\"";
-                                        }
-
-
-                                        @RequestMapping(value = "/xml/{name}", produces = MediaType.APPLICATION_XML, consumes = MediaType.APPLICATION_XML, method = RequestMethod.POST)
-                                        public String getHelloWorldXML(@PathParam("name") String name) throws Exception {
-                                            System.out.println("name: " + name);
-                                            return "<xml>Hello "+name+"</xml>";
-                                        }
-
-                                        private boolean isResponseStatusSuccessful(Response.Status.Family family) {
-                                            return family == Family.SUCCESSFUL;
-                                        }
-
-                                    }
-                                    """
                             ),
                             pomXml(
-                                    //language=xml
                                     POM_XML
                             )
                     )
@@ -320,11 +303,9 @@ public class JaxRsThroughAdapterTest {
             String mavenPluginVersion = "";
             String gradlePluginVersion = "";
             Path baseDir = tmpDir;
-
-//        mvn -B --fail-at-end org.openrewrite.maven:rewrite-maven-plugin:5.32.1:dryRun \
-//        -Drewrite.activeRecipes=example.recipe.SbmAdapterRecipe \ 
-//        -Drewrite.recipeArtifactCoordinates=org.springframework.sbm:jaxrs-recipes:0.15.2-SNAPSHOT \
-//                -Dmaven.opts=“-Xms256M -Xmx1024M  -Xdebug -Xrunjdwp:transport=dt_socket,server=y,suspend=y,address=5005“
+            // mvn -B --fail-at-end -Drewrite.activeRecipes=example.recipe.SbmAdapterRecipe -Drewrite.recipeArtifactCoordinates=org.springframework.sbm:jaxrs-recipes:0.15.2-SNAPSHOT -Dmaven.opts="-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=127.0.0.1:8000" org.openrewrite.maven:rewrite-maven-plugin:5.32.1:dryRun
+// mvn -B --fail-at-end -Drewrite.activeRecipes=example.recipe.SbmAdapterRecipe -Drewrite.recipeArtifactCoordinates=org.springframework.sbm:jaxrs-recipes:0.15.2-SNAPSHOT -Dmaven.opts=“-Xms256M -Xmx1024M“ -agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=5005 org.openrewrite.maven:rewrite-maven-plugin:5.32.1:dryRun
+//        mvn -B --fail-at-end -Drewrite.activeRecipes=example.recipe.SbmAdapterRecipe -Drewrite.recipeArtifactCoordinates=org.springframework.sbm:jaxrs-recipes:0.15.2-SNAPSHOT -Dmaven.opts=“-Xms256M -Xmx1024M“ -Xagentlib:jdwp=transport=dt_socket,server=y,suspend=y,address=5005 org.openrewrite.maven:rewrite-maven-plugin:5.32.1:dryRun
 
 
             PluginInvocationResult pluginInvocationResult = RewritePlugin.run()
@@ -339,8 +320,22 @@ public class JaxRsThroughAdapterTest {
 
             System.out.println(pluginInvocationResult.capturedOutput());
 
+            System.out.println(Files.readString(to.resolve("src/main/java/com/example/jee/app/PersonController.java")));
 
         }
     }
 
+    public static List<Path> getDependencyJarsForClasspath(String pom) {
+        try {
+            Xml.Document doc = (Xml.Document) MavenParser.builder().build().parse(pom).toList().get(0);
+            MavenResolutionResult resolutionResult = doc.getMarkers().findFirst(MavenResolutionResult.class).orElseThrow();
+            resolutionResult = resolutionResult.resolveDependencies(new MavenPomDownloader(Collections.emptyMap(), new InMemoryExecutionContext(), null, null), new InMemoryExecutionContext());
+            List<ResolvedDependency> resolvedDependencies = resolutionResult.getDependencies().get(Scope.Compile);
+            MavenArtifactDownloader downloader = new MavenArtifactDownloader(new LocalMavenArtifactCache(Paths.get(System.getProperty("user.home"), ".m2", "repository")), null, (t) -> {
+            });
+            return resolvedDependencies.stream().filter(d -> "jar".equals(d.getType())).map(downloader::downloadArtifact).toList();
+        } catch (MavenDownloadingExceptions e) {
+            throw new RuntimeException(e);
+        }
+    }
 }

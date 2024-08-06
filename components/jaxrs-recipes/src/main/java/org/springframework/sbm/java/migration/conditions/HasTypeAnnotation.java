@@ -35,10 +35,9 @@ public class HasTypeAnnotation implements Condition {
 
     @Override
     public boolean evaluate(ProjectContext context) {
-        return true;
-//        context.getProjectJavaSources().asStream()
-//                .flatMap(js -> js.getTypes().stream())
-//                .anyMatch(t -> t.hasAnnotation(annotation));
+        return context.getProjectJavaSources().asStream()
+                .flatMap(js -> js.getTypes().stream())
+                .anyMatch(t -> t.hasAnnotation(annotation));
     }
 
 }
