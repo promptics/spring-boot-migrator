@@ -92,13 +92,11 @@ public class SbmAdapterRecipe extends ScanningRecipe<List<SourceFile>> {
 
     @Override
     public Collection<? extends SourceFile> generate(List<SourceFile> generate, ExecutionContext executionContext) {
-//        Collection<? extends SourceFile> generate = super.generate(acc, executionContext);
-
         // create the required classes
-        initBeans(executionContext);
+        initBeans();
 
         // transform nodes to SourceFiles
-        List<SourceFile> sourceFiles = generate.stream().filter(SourceFile.class::isInstance).map(SourceFile.class::cast).toList();
+        List<SourceFile> sourceFiles = generate;
 
         // FIXME: base dir calculation is fake
         Path baseDir = Path.of(".").resolve("testcode/jee/jaxrs/bootify-jaxrs/given").toAbsolutePath().normalize(); //executionContext.getMessage("base.dir");
@@ -114,61 +112,19 @@ public class SbmAdapterRecipe extends ScanningRecipe<List<SourceFile>> {
         RewriteRecipeLoader recipeLoader = new RewriteRecipeLoader();
         new MigrateJaxRsRecipe().jaxRs(recipeLoader).apply(pc);
 
-        // Merge back result
-        List<? extends SourceFile> modifiedNodes = merge(sourceFiles, pc.getProjectResources());
+        List<? extends SourceFile> list = pc.getProjectResources().stream()
+                .map(pr -> pr.getSourceFile())
+                .toList();
 
-        return modifiedNodes;
+        return list;
     }
 
-    private List<? extends SourceFile> merge(List<SourceFile> nodes, ProjectResourceSet projectResources) {
-        // merge the changed results into the given list and return the result
-        ArrayList<SourceFile> merged = new ArrayList<>();
-        merged.addAll(nodes);
-        projectResources.stream()
-                .filter(r -> r.hasChanges())
-                .forEach(changed -> {
-                    int pos = findPosition(merged, changed);
-                    merged.add(pos, changed.getSourceFile());
-                });
-        return merged;
-    }
-
-    private int findPosition(List<SourceFile> merged, RewriteSourceFileHolder<? extends SourceFile> changed) {
-        List<String> paths = merged.stream().map(f -> f.getSourcePath().toString()).toList();
-        return paths.indexOf(changed.getSourcePath().toString());
-    }
-
-
-    private void initBeans(ExecutionContext executionContext) {
+    private void initBeans() {
+        // ExecutionContext is not retrieved from OpenRewrite here
         AnnotationConfigApplicationContext ctx = new AnnotationConfigApplicationContext("org.springframework.freemarker", "org.springframework.sbm", "org.springframework.rewrite");
         ctx.register(Configuration.class);
         this.projectContextFactory = ctx.getBean(ProjectContextFactory.class);
         this.projectResourceSetFactory = ctx.getBean(ProjectResourceSetFactory.class);
-//        RewriteSourceFileWrapper sourceFileWrapper = new RewriteSourceFileWrapper();
-//        SbmApplicationProperties sbmApplicationProperties = new SbmApplicationProperties();
-//        JavaParserBuilder parserBuilder = new JavaParserBuilder();
-//        List<ProjectResourceWrapper> projectResourceWrappers = new ArrayList<>();
-//        RewriteMigrationResultMerger merger = new RewriteMigrationResultMerger(sourceFileWrapper);
-//        ProjectResourceSetHolder holder = new ProjectResourceSetHolder(executionContext, merger);
-//        JavaRefactoringFactory refactoringFactory = new JavaRefactoringFactoryImpl(holder, executionContext);
-//        projectResourceWrappers.add(new JavaSourceProjectResourceWrapper(refactoringFactory, parserBuilder, executionContext));
-//        ProjectMetadata projectMetadata = new ProjectMetadata();
-//        MavenBuildFileRefactoringFactory buildFileRefactoringFactory = new MavenBuildFileRefactoringFactory(holder, new RewriteMavenParser(new MavenSettingsInitializer(executionContext, projectMetadata), executionContext), executionContext);
-//        projectResourceWrappers.add(new BuildFileResourceWrapper(
-//                event -> System.out.println(event),
-//                buildFileRefactoringFactory,
-//                executionContext,
-//                new RewriteMavenArtifactDownloader(new LocalMavenArtifactCache(Path.of(System.getProperty("user.dir")).resolve(".m2/repository")), new MavenSettings(), t -> {throw new RuntimeException(t);}))
-//        );
-//
-//
-//        projectResourceSetFactory = new ProjectResourceSetFactory(new RewriteMigrationResultMerger(sourceFileWrapper), sourceFileWrapper, executionContext);
-//        ProjectResourceWrapperRegistry registry = new ProjectResourceWrapperRegistry(projectResourceWrappers);
-//        BasePackageCalculator calculator = new BasePackageCalculator(sbmApplicationProperties);
-//
-//        ProjectResourceSetFactory resourceSetFactory = new ProjectResourceSetFactory(merger, sourceFileWrapper, executionContext);
-//
-//        projectContextFactory = new ProjectContextFactory(registry, holder, refactoringFactory, calculator, parserBuilder, executionContext, merger, resourceSetFactory);
     }
 
 }

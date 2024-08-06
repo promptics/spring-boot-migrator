@@ -15,10 +15,12 @@
  */
 package org.springframework.sbm;
 
+import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.sbm.engine.recipe.UserInteractions;
 import org.springframework.stereotype.Component;
 
 @Component
+@ConditionalOnMissingBean(type = "org.springframework.sbm.UserInteractions")
 public class UserInteractionsDummy implements UserInteractions {
     @Override
     public boolean askUserYesOrNo(String question) {

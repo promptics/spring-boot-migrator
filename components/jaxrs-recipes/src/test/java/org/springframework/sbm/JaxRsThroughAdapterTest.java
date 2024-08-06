@@ -300,7 +300,7 @@ public class JaxRsThroughAdapterTest {
             FileUtils.forceMkdir(to.toFile());
             FileUtils.copyDirectory(from.toFile(), to.toFile());
 
-            String mavenPluginVersion = "";
+            String mavenPluginVersion = "5.35.0";
             String gradlePluginVersion = "";
             Path baseDir = tmpDir;
             // mvn -B --fail-at-end -Drewrite.activeRecipes=example.recipe.SbmAdapterRecipe -Drewrite.recipeArtifactCoordinates=org.springframework.sbm:jaxrs-recipes:0.15.2-SNAPSHOT -Dmaven.opts="-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=127.0.0.1:8000" org.openrewrite.maven:rewrite-maven-plugin:5.32.1:dryRun

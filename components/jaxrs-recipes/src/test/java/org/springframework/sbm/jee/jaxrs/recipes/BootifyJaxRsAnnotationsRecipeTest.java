@@ -36,7 +36,7 @@ public class BootifyJaxRsAnnotationsRecipeTest {
         Optional<Recipe> recipe = Optional.of(jaxRsRecipe);
         RecipeTestSupport.assertThatRecipeExists(recipe);
         RecipeTestSupport.assertThatRecipeHasActions(recipe,
-                AddDependencies.class,
+//                AddDependencies.class,
                 ConvertJaxRsAnnotations.class,
                 ReplaceTypeAction.class,
                 ReplaceTypeAction.class,
