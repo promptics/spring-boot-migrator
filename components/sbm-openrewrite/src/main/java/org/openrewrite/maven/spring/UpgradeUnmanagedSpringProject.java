@@ -19,6 +19,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.jetbrains.annotations.NotNull;
 import org.openrewrite.ExecutionContext;
 import org.openrewrite.InMemoryExecutionContext;
+import org.openrewrite.Preconditions;
 import org.openrewrite.Recipe;
 import org.openrewrite.TreeVisitor;
 import org.openrewrite.marker.SearchResult;
@@ -67,9 +68,8 @@ public class UpgradeUnmanagedSpringProject extends Recipe {
         this.oldVersionPattern = Pattern.compile(versionPattern);
     }
 
-    @Override
-    protected TreeVisitor<?, ExecutionContext> getApplicableTest() {
-        return new MavenIsoVisitor<>() {
+    private TreeVisitor<?, ExecutionContext> buildApplicableTest() {
+        return new MavenIsoVisitor<ExecutionContext>() {
             @Override
             public Xml.Tag visitTag(Xml.Tag tag, ExecutionContext executionContext) {
                 Xml.Tag resultTag = super.visitTag(tag, executionContext);
@@ -107,6 +107,11 @@ public class UpgradeUnmanagedSpringProject extends Recipe {
         return "Upgrade unmanaged spring project";
     }
 
+    @Override
+    public String getDescription() {
+        return getDisplayName();
+    }
+
     public synchronized Map<String, String> getDependenciesMap(ExecutionContext ctx) {
         if (springBootDependenciesMap == null) {
             springBootDependenciesMap = buildDependencyMap(ctx);
@@ -114,8 +119,12 @@ public class UpgradeUnmanagedSpringProject extends Recipe {
         return springBootDependenciesMap;
     }
     @Override
-    protected TreeVisitor<?, ExecutionContext> getVisitor() {
-        return new MavenIsoVisitor<>() {
+    public TreeVisitor<?, ExecutionContext> getVisitor() {
+        return Preconditions.check(buildApplicableTest(), buildMainVisitor());
+    }
+
+    private TreeVisitor<?, ExecutionContext> buildMainVisitor() {
+        return new MavenIsoVisitor<ExecutionContext>() {
             @Override
             public Xml.Tag visitTag(Xml.Tag tag, ExecutionContext executionContext) {
                 Xml.Tag resultTag = super.visitTag(tag, executionContext);
@@ -149,7 +158,7 @@ public class UpgradeUnmanagedSpringProject extends Recipe {
                     }
                     if (versionValue.startsWith("${")) {
                         String propertyName = versionValue.substring(2, versionValue.length() - 1);
-                        version.ifPresent(xml -> doAfterVisit(new ChangePropertyValue(propertyName, dependencyVersion, true, true)));
+                        version.ifPresent(xml -> doAfterVisit(new ChangePropertyValue(propertyName, dependencyVersion, true, true).getVisitor()));
                     } else {
                         version.ifPresent(xml -> doAfterVisit(new ChangeTagValueVisitor(xml, dependencyVersion)));
                     }
@@ -180,9 +189,9 @@ public class UpgradeUnmanagedSpringProject extends Recipe {
         String relativePath = "";
         ResolvedPom containingPom = null;
         List<MavenRepository> repositories = new ArrayList<>();
-        repositories.add(new MavenRepository("repository.spring.milestone", "https://repo.spring.io/milestone", "true", "true", null, null));
-        repositories.add(new MavenRepository("spring-snapshot", "https://repo.spring.io/snapshot", "false", "true", null, null));
-        repositories.add(new MavenRepository("spring-release", "https://repo.spring.io/release", "true", "false", null, null));
+        repositories.add(new MavenRepository("repository.spring.milestone", "https://repo.spring.io/milestone", "true", "true", false, null, null, null));
+        repositories.add(new MavenRepository("spring-snapshot", "https://repo.spring.io/snapshot", "false", "true", false, null, null, null));
+        repositories.add(new MavenRepository("spring-release", "https://repo.spring.io/release", "true", "false", false, null, null, null));
         Pom pom = null;
         ResolvedPom resolvedPom = null;
         Map<String, String> dependencyMap = new HashMap<>();
