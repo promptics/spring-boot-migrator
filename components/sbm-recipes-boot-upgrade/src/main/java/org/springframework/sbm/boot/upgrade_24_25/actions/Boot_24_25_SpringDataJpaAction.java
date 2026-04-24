@@ -68,7 +68,7 @@ public class Boot_24_25_SpringDataJpaAction extends AbstractAction {
     private void refactorCallsToGetOne(List<MethodCall> callsToGetOneMethods) {
         callsToGetOneMethods.forEach(c -> c.getJavaSource()
                 // FIXME: calculate target type
-                .renameMethodCalls(/*c.getMethodMatcher().getTargetTypePattern() + */"com.example.springboot24to25example.TagRepository " + c.getMethodMatcher().getMethodNamePattern() + "(" + c.getMethodMatcher().getArgumentPattern() + ")", "getById")
+                .renameMethodCalls(c.getMethodPattern(), "getById")
         );
     }
 

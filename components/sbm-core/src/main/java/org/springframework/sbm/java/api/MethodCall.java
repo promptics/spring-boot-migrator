@@ -22,4 +22,15 @@ import org.openrewrite.java.MethodMatcher;
 public class MethodCall {
     JavaSource javaSource;
     MethodMatcher methodMatcher;
+    String methodPattern;
+
+    public MethodCall(JavaSource javaSource, MethodMatcher methodMatcher) {
+        this(javaSource, methodMatcher, "");
+    }
+
+    public MethodCall(JavaSource javaSource, MethodMatcher methodMatcher, String methodPattern) {
+        this.javaSource = javaSource;
+        this.methodMatcher = methodMatcher;
+        this.methodPattern = methodPattern;
+    }
 }

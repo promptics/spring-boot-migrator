@@ -79,7 +79,7 @@ public class OpenRewriteAnnotation implements Annotation {
 
     @Override
     public void setAttribute(String attribute, Object value, Class valueType) {
-        AddOrUpdateAnnotationAttribute recipe = new AddOrUpdateAnnotationAttribute(this.getFullyQualifiedName(), attribute, value.toString(), false);
+        AddOrUpdateAnnotationAttribute recipe = new AddOrUpdateAnnotationAttribute(this.getFullyQualifiedName(), attribute, value.toString(), null, false, null);
         refactoring.refactor(recipe);
     }
 

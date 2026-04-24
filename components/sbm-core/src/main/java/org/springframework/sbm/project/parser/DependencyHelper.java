@@ -95,7 +95,8 @@ public class DependencyHelper {
                     type,
                     scope,
                     exclusions,
-                    optional
+                    optional,
+                    Map.of()
             );
 
             dependencies.add(dependency);
