@@ -117,6 +117,9 @@ public class MigrateJndiLookup extends AbstractAction {
 
         private J.Block removeFromMethodBlock(List<MatchFound> matches, J.Block block) {
             for (MatchFound match : matches) {
+                // Block-containment check by id -- intentional. This asks "is the block we
+                // are currently visiting the one that contains the match?", which is
+                // precisely what OR 8's id-preserving with*() semantics guarantee.
                 if (match.getContainingBlock() != null && block.getId().equals(match.getContainingBlock().getId())) {
                     List<Statement> statements = block.getStatements();
                     Iterator<Statement> iterator = statements.iterator();

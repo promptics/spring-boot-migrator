@@ -97,6 +97,9 @@ public class VisitorUtils {
 
         @Override
         public @Nullable J postVisit(J tree, ExecutionContext p) {
+            // ID-based lookup -- intentional. OR 8 preserves ids across with*() so a
+            // re-visit matches the same node; computeByType(..., (m1, m2) -> m2) replaces
+            // the marker with itself, making the second pass a no-op.
             if (tree.getId().equals(addTo)) {
                 return tree.withMarkers(tree.getMarkers().computeByType(new MarkWithTemplate(Tree.randomId(), recipe, template), (m1, m2) -> m2));
             }
@@ -174,6 +177,10 @@ public class VisitorUtils {
                             removeMarker(expression, marker);
                             MethodDeclaration method = getCursor().firstEnclosing(MethodDeclaration.class);
                             if (method != null) {
+                                // ID-based predicate -- intentional. Setting the return type to
+                                // marker.getExpression() is self-stabilizing (applying it again
+                                // yields the same return type), so OR 8's id-preserving
+                                // with*() semantics do not cause a diff on the second pass.
                                 ChangeMethodReturnTypeRecipe changeMethodReturnTypeRecipe = new ChangeMethodReturnTypeRecipe(m -> m.getId().equals(method.getId()), marker.getExpression(), marker.getImports());
                                 doAfterVisit(changeMethodReturnTypeRecipe.getVisitor());
                             }

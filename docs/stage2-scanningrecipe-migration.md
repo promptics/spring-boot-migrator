@@ -58,15 +58,19 @@ Constructor-based target tracking — migrate first:
 
 ### Secondary (Kategorie D)
 
-Stored-id lookups into the AST — evaluate per site whether the new
-id-preserving semantics are intended or subtly broken:
+Reviewed. All seven sites are **correct** under OR 8 id-preserving semantics:
 
-- `components/sbm-recipes-jee-to-boot/.../MigrateJndiLookup.java` (block containment check, probably fine)
-- `components/jaxrs-recipes/.../MigrateJndiLookup.java` (same, copy)
-- `components/sbm-core/.../java/impl/OpenRewriteType.java`
-- `components/sbm-core/.../java/impl/OpenRewriteMember.java`
-- `components/sbm-core/.../java/impl/OpenRewriteMethod.java`
-- `components/sbm-core/.../java/migration/visitor/VisitorUtils.java`
+| Site | Purpose | OR 8 verdict |
+|---|---|---|
+| `OpenRewriteType.getClassDeclaration()` | id → ClassDeclaration lookup inside the current SourceFile | safe — lookup, benefits from id stability |
+| `OpenRewriteMember.getVariableDeclarations()` | same for VariableDeclarations | safe |
+| `OpenRewriteMethod.getMethodDecl()` | same for MethodDeclaration | safe |
+| `VisitorUtils.AddTemplateMark.postVisit` | add marker when tree id matches | safe — `computeByType(..., (m1, m2) -> m2)` replaces the marker with itself on a re-visit |
+| `VisitorUtils` `ChangeMethodReturnTypeRecipe` predicate | id-based method predicate | safe — return-type change is self-stabilizing |
+| `MigrateJndiLookup` x2 `removeFromMethodBlock` | block-containment check by id | safe — this is exactly what id-preserving `with*()` guarantees |
+
+The four less-obvious sites have explanatory comments in the code. The three
+`get*()` lookups in `sbm-core` are self-explanatory and left as-is.
 
 ### Out of scope (Kategorie C)
 
@@ -94,8 +98,9 @@ Coordinate with a minor version bump.
       twice changes nothing the second time) — deferred until the OR-8 test
       infrastructure migration is done (`Recipe.run(LargeSourceSet)`,
       `Stream<SourceFile>` vs `List<SourceFile>`)
-- [ ] Secondary (D) sites are reviewed and either kept with an explanatory
-      comment or migrated
+- [x] Secondary (D) sites are reviewed and either kept with an explanatory
+      comment or migrated (all seven are safe under OR 8 semantics — see table
+      above)
 
 ## Pattern used
 
