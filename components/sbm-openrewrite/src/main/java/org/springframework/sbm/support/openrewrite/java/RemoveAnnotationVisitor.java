@@ -16,7 +16,6 @@
 package org.springframework.sbm.support.openrewrite.java;
 
 import org.openrewrite.ExecutionContext;
-import org.openrewrite.java.JavaIsoVisitor;
 import org.openrewrite.java.tree.J;
 import org.openrewrite.java.tree.JavaType.FullyQualified;
 import org.openrewrite.java.tree.TypeUtils;
@@ -24,20 +23,18 @@ import org.openrewrite.java.tree.TypeUtils;
 import java.util.List;
 import java.util.stream.Collectors;
 
-public class RemoveAnnotationVisitor extends JavaIsoVisitor<ExecutionContext> {
+public class RemoveAnnotationVisitor extends OnceTargetJavaVisitor {
 
     private final String fqAnnotationName;
 
-    private final J target;
-
     public RemoveAnnotationVisitor(J target, String fqAnnotationName) {
+        super(target);
         this.fqAnnotationName = fqAnnotationName;
-        this.target = target;
     }
 
     public J.ClassDeclaration visitClassDeclaration(J.ClassDeclaration cd, ExecutionContext executionContext) {
         J.ClassDeclaration classDecl = super.visitClassDeclaration(cd, executionContext);
-        if (target == classDecl) {
+        if (matchesTarget(classDecl)) {
             List<J.Annotation> keptAnnotations = classDecl.getLeadingAnnotations()
                     .stream()
                     .filter(a -> {
@@ -56,7 +53,7 @@ public class RemoveAnnotationVisitor extends JavaIsoVisitor<ExecutionContext> {
 
     public J.MethodDeclaration visitMethodDeclaration(J.MethodDeclaration md, ExecutionContext executionContext) {
         J.MethodDeclaration methodDecl = super.visitMethodDeclaration(md, executionContext);
-        if (target.getId().equals(methodDecl.getId())) {
+        if (matchesTarget(methodDecl)) {
             List<J.Annotation> annotations = methodDecl.getLeadingAnnotations()
                     .stream()
                     .filter(a -> {
@@ -75,7 +72,7 @@ public class RemoveAnnotationVisitor extends JavaIsoVisitor<ExecutionContext> {
     @Override
     public J.VariableDeclarations visitVariableDeclarations(J.VariableDeclarations mv, ExecutionContext executionContext) {
         J.VariableDeclarations multiVariable = super.visitVariableDeclarations(mv, executionContext);
-        if (target == multiVariable) {
+        if (matchesTarget(multiVariable)) {
             List<J.Annotation> annotations = multiVariable.getLeadingAnnotations().stream()
                     .filter(a -> {
                         FullyQualified fullyQualified = TypeUtils.asFullyQualified(a.getType());

@@ -16,7 +16,6 @@
 package org.springframework.sbm.support.openrewrite.java;
 
 import org.openrewrite.ExecutionContext;
-import org.openrewrite.java.JavaIsoVisitor;
 import org.openrewrite.java.JavaParser;
 import org.openrewrite.java.JavaTemplate;
 import org.openrewrite.java.tree.Expression;
@@ -25,16 +24,15 @@ import org.openrewrite.java.tree.J;
 import java.util.List;
 import java.util.function.Supplier;
 
-public class AddOrReplaceAnnotationAttribute extends JavaIsoVisitor<ExecutionContext> {
+public class AddOrReplaceAnnotationAttribute extends OnceTargetJavaVisitor {
 
-    private final J.Annotation targetAnnotation;
     private final String attribute;
     private final Object value;
     private final Class valueType;
     private final Supplier<JavaParser.Builder> javaParserSupplier;
 
     public AddOrReplaceAnnotationAttribute(Supplier<JavaParser.Builder> javaParserSupplier, J.Annotation targetAnnotation, String attribute, Object value, Class valueType) {
-        this.targetAnnotation = targetAnnotation;
+        super(targetAnnotation);
         this.attribute = attribute.trim();
         this.value = value;
         this.valueType = valueType;
@@ -43,16 +41,16 @@ public class AddOrReplaceAnnotationAttribute extends JavaIsoVisitor<ExecutionCon
 
     @Deprecated(forRemoval = true)
     public AddOrReplaceAnnotationAttribute(J.Annotation targetAnnotation, String attribute, Object value, Class valueType) {
-        this.targetAnnotation = targetAnnotation;
+        super(targetAnnotation);
         this.attribute = attribute.trim();
         this.value = value;
         this.valueType = valueType;
-        javaParserSupplier = () -> JavaParser.fromJavaVersion();
+        this.javaParserSupplier = () -> JavaParser.fromJavaVersion();
     }
 
     @Override
     public J.Annotation visitAnnotation(J.Annotation annotation, ExecutionContext executionContext) {
-        if (!targetAnnotation.getId().equals(annotation.getId())) {
+        if (!matchesTarget(annotation)) {
             return super.visitAnnotation(annotation, executionContext);
         }
 
