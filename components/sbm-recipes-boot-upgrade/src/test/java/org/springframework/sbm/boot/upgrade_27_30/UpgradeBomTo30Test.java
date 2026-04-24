@@ -37,7 +37,8 @@ public class UpgradeBomTo30Test {
                 "spring-boot-dependencies",
                 "3.0.0-M3",
                 null,
-                null
+                null,
+                List.of()
         );
 
         List<Throwable> errors = new ArrayList<>();
@@ -156,7 +157,8 @@ public class UpgradeBomTo30Test {
                 "spring-boot-dependencies",
                 "3.0.0-M3",
                 null,
-                null
+                null,
+                List.of()
         );
 
         List<Throwable> errors = new ArrayList<>();

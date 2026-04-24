@@ -17,9 +17,9 @@
         <maven-compiler-plugin.version>3.11.0</maven-compiler-plugin.version>
         <java.version>17</java.version>
         <spring-shell.version>2.1.14</spring-shell.version>
-        <openrewrite.version>8.80.1</openrewrite.version>
-        <openrewrite.spring.version>6.30.1</openrewrite.spring.version>
-        <rewrite-migrate-java.version>3.33.1</rewrite-migrate-java.version>
+        <openrewrite.version>7.40.8</openrewrite.version>
+        <openrewrite.spring.version>4.36.0</openrewrite.spring.version>
+        <rewrite-migrate-java.version>1.21.1</rewrite-migrate-java.version>
         <spring-boot.version>2.7.5</spring-boot.version>
         <progressbar.version>0.10.0</progressbar.version>
         <testcontainers.version>1.19.1</testcontainers.version>
