@@ -30,7 +30,12 @@ import java.util.stream.Stream;
  *
  * Target-once semantics are provided by {@link OnceTargetJavaVisitor}; see its javadoc and
  * {@code docs/stage2-scanningrecipe-migration.md} for the follow-up work.
+ *
+ * @deprecated Use {@link AddAnnotationRecipe} instead. The recipe variant is a proper
+ *     two-phase {@code ScanningRecipe} and is idempotent under the OR 8.1+ id-preserving
+ *     {@code with*()} semantics.
  */
+@Deprecated(forRemoval = true)
 public class AddAnnotationVisitor extends OnceTargetJavaVisitor {
     private final String snippet;
     private final String[] imports;

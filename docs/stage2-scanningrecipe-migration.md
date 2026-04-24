@@ -1,7 +1,9 @@
 # Stage 2 — Migrate target-tracking visitors to `ScanningRecipe` / `Preconditions`
 
 > Tracking document for the second stage of the OpenRewrite 7 → 8 migration.
-> Stage 1 (the `OnceTargetJavaVisitor` crutch) is already on the branch.
+> Stage 1 (the `OnceTargetJavaVisitor` crutch) **and** the primary part of
+> stage 2 are now on the branch. This document stays for the remaining
+> secondary (Kategorie D) scope.
 
 ## Background
 
@@ -82,13 +84,47 @@ Coordinate with a minor version bump.
 
 ## Acceptance criteria
 
-- [ ] Primary (A + B) call sites no longer hold a raw target `J` reference
+- [x] Primary (A + B) call sites no longer hold a raw target `J` reference
+      (moved to `ScanningRecipe<Set<UUID>>` in `AddAnnotationRecipe`,
+      `RemoveAnnotationRecipe`, `AddOrReplaceAnnotationAttributeRecipe`)
+- [x] `OnceTargetJavaVisitor` + the three old visitor classes are marked
+      `@Deprecated(forRemoval = true)` with a migration pointer to the
+      recipe variants
 - [ ] Transformation is demonstrably idempotent on a test fixture (applying
-      twice changes nothing the second time)
-- [ ] `OnceTargetJavaVisitor` from stage 1 is removed, or marked
-      `@Deprecated(forRemoval = true)` with a migration note in the javadoc
+      twice changes nothing the second time) — deferred until the OR-8 test
+      infrastructure migration is done (`Recipe.run(LargeSourceSet)`,
+      `Stream<SourceFile>` vs `List<SourceFile>`)
 - [ ] Secondary (D) sites are reviewed and either kept with an explanatory
       comment or migrated
+
+## Pattern used
+
+All three recipes follow the same two-phase shape:
+
+```java
+public class SomeRecipe extends ScanningRecipe<Set<UUID>> {
+    private final UUID targetId;
+
+    public Set<UUID> getInitialValue(ExecutionContext ctx) { return new HashSet<>(); }
+
+    public TreeVisitor<?, ExecutionContext> getScanner(Set<UUID> acc) {
+        return new JavaIsoVisitor<>() {
+            // record the target id into acc when the node is found
+        };
+    }
+
+    public TreeVisitor<?, ExecutionContext> getVisitor(Set<UUID> acc) {
+        return new JavaIsoVisitor<>() {
+            // acc.remove(node.getId()) returns true exactly once per run;
+            // any subsequent visit of the transformed node is a no-op.
+        };
+    }
+}
+```
+
+The critical property is `acc.remove(node.getId())` — it returns `true` only
+the first time and removes the id, so the re-visit caused by OR 8's
+id-preserving `with*()` semantics doesn't re-trigger the transformation.
 
 ## Non-goals
 

@@ -32,7 +32,7 @@ import org.springframework.sbm.java.api.MethodParam;
 import org.springframework.sbm.java.api.Visibility;
 import org.springframework.sbm.java.refactoring.JavaRefactoring;
 import org.springframework.rewrite.parser.JavaParserBuilder;
-import org.springframework.sbm.support.openrewrite.java.RemoveAnnotationVisitor;
+import org.springframework.sbm.support.openrewrite.java.RemoveAnnotationRecipe;
 
 import java.nio.file.Path;
 import java.util.*;
@@ -100,7 +100,7 @@ public class OpenRewriteMethod implements Method {
 
     @Override
     public void removeAnnotation(Annotation annotation) {
-        Recipe recipe = new GenericOpenRewriteRecipe<>(() -> new RemoveAnnotationVisitor(getMethodDecl(), annotation.getFullyQualifiedName()));
+        Recipe recipe = new RemoveAnnotationRecipe(getMethodDecl(), annotation.getFullyQualifiedName());
         refactoring.refactor(sourceFile, recipe);
     }
 

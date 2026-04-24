@@ -36,7 +36,13 @@ import org.openrewrite.java.tree.J;
  * <p><b>Do not add new callers.</b> This is a temporary helper; the proper OR-8 patterns are
  * {@code ScanningRecipe}, {@code Preconditions.check(...)} and {@code SearchResult} markers.
  * See {@code docs/stage2-scanningrecipe-migration.md}.</p>
+ *
+ * @deprecated Stage 2 replacement classes ({@link AddAnnotationRecipe},
+ *     {@link RemoveAnnotationRecipe}, {@link AddOrReplaceAnnotationAttributeRecipe}) are
+ *     now the preferred path. This helper is kept only while the {@code @Deprecated}
+ *     visitor subclasses still exist.
  */
+@Deprecated(forRemoval = true)
 public abstract class OnceTargetJavaVisitor extends JavaIsoVisitor<ExecutionContext> {
 
     private final J target;

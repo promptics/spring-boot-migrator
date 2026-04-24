@@ -33,7 +33,7 @@ import org.springframework.sbm.java.migration.visitor.RemoveImplementsVisitor;
 import org.springframework.sbm.java.refactoring.JavaRefactoring;
 import org.springframework.rewrite.parser.JavaParserBuilder;
 import org.springframework.sbm.support.openrewrite.java.FindCompilationUnitContainingType;
-import org.springframework.sbm.support.openrewrite.java.RemoveAnnotationVisitor;
+import org.springframework.sbm.support.openrewrite.java.RemoveAnnotationRecipe;
 
 import java.nio.file.Path;
 import java.util.*;
@@ -170,15 +170,15 @@ public class OpenRewriteType implements Type {
     @Override
     // FIXME: reuse
     public void removeAnnotation(String fqName) {
-        // TODO: See if RemoveAnnotationVisitor can be replaced with OpenRewrite's version
-        Recipe removeAnnotationRecipe = new GenericOpenRewriteRecipe<>(() -> new RemoveAnnotationVisitor(getClassDeclaration(), fqName));
+        // TODO: See if RemoveAnnotationRecipe can be replaced with OpenRewrite's version
+        Recipe removeAnnotationRecipe = new RemoveAnnotationRecipe(getClassDeclaration(), fqName);
         refactoring.refactor(rewriteSourceFileHolder, removeAnnotationRecipe);
         refactoring.refactor(rewriteSourceFileHolder, new RemoveUnusedImports());
     }
 
     @Override
     public void removeAnnotation(Annotation annotation) {
-        Recipe removeAnnotationRecipe = new GenericOpenRewriteRecipe<>(() -> new RemoveAnnotationVisitor(getClassDeclaration(), annotation.getFullyQualifiedName()));
+        Recipe removeAnnotationRecipe = new RemoveAnnotationRecipe(getClassDeclaration(), annotation.getFullyQualifiedName());
         refactoring.refactor(rewriteSourceFileHolder, removeAnnotationRecipe);
         refactoring.refactor(rewriteSourceFileHolder, new RemoveUnusedImports());
     }

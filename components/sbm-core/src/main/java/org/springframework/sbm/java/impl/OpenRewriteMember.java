@@ -36,7 +36,7 @@ import org.springframework.rewrite.recipes.GenericOpenRewriteRecipe;
 import org.springframework.sbm.java.api.Annotation;
 import org.springframework.sbm.java.api.Member;
 import org.springframework.sbm.java.refactoring.JavaRefactoring;
-import org.springframework.sbm.support.openrewrite.java.RemoveAnnotationVisitor;
+import org.springframework.sbm.support.openrewrite.java.RemoveAnnotationRecipe;
 
 import java.io.ByteArrayInputStream;
 import java.nio.file.Path;
@@ -250,8 +250,7 @@ public class OpenRewriteMember implements Member {
 
     @Override
     public void removeAnnotation(Annotation annotation) {
-        // TODO: Maybe replace RemoveAnnotationVisitor with OpenRewrite's recipe
-        RemoveAnnotationVisitor removeAnnotationRecipe = new RemoveAnnotationVisitor(getVariableDeclarations(), annotation.getFullyQualifiedName());
+        RemoveAnnotationRecipe removeAnnotationRecipe = new RemoveAnnotationRecipe(getVariableDeclarations(), annotation.getFullyQualifiedName());
         refactoring.refactor(rewriteSourceFileHolder, removeAnnotationRecipe);
     }
 

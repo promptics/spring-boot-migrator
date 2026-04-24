@@ -23,6 +23,12 @@ import org.openrewrite.java.tree.TypeUtils;
 import java.util.List;
 import java.util.stream.Collectors;
 
+/**
+ * @deprecated Use {@link RemoveAnnotationRecipe} instead. The recipe variant is a proper
+ *     two-phase {@code ScanningRecipe} and is idempotent under the OR 8.1+ id-preserving
+ *     {@code with*()} semantics.
+ */
+@Deprecated(forRemoval = true)
 public class RemoveAnnotationVisitor extends OnceTargetJavaVisitor {
 
     private final String fqAnnotationName;

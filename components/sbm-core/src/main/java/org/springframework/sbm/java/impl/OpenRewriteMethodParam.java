@@ -25,8 +25,8 @@ import org.springframework.sbm.java.api.Annotation;
 import org.springframework.sbm.java.api.MethodParam;
 import org.springframework.sbm.java.refactoring.JavaRefactoring;
 import org.springframework.rewrite.parser.JavaParserBuilder;
-import org.springframework.sbm.support.openrewrite.java.AddAnnotationVisitor;
-import org.springframework.sbm.support.openrewrite.java.RemoveAnnotationVisitor;
+import org.springframework.sbm.support.openrewrite.java.AddAnnotationRecipe;
+import org.springframework.sbm.support.openrewrite.java.RemoveAnnotationRecipe;
 
 import java.util.List;
 import java.util.Set;
@@ -64,14 +64,14 @@ public class OpenRewriteMethodParam implements MethodParam {
 
     @Override
     public void removeAnnotation(Annotation annotation) {
-        RemoveAnnotationVisitor removeAnnotationRecipe = new RemoveAnnotationVisitor(wrappedMethodParam, annotation.getFullyQualifiedName());
+        RemoveAnnotationRecipe removeAnnotationRecipe = new RemoveAnnotationRecipe(wrappedMethodParam, annotation.getFullyQualifiedName());
         refactoring.refactor(sourceFile, removeAnnotationRecipe);
     }
 
     @Override
     public void addAnnotation(String snippet, String annotationImport, String... otherImports) {
-        AddAnnotationVisitor visitor = new AddAnnotationVisitor(javaParserBuilder, wrappedMethodParam, snippet, annotationImport, otherImports);
-        refactoring.refactor(sourceFile, visitor);
+        AddAnnotationRecipe recipe = new AddAnnotationRecipe(javaParserBuilder, wrappedMethodParam, snippet, annotationImport, otherImports);
+        refactoring.refactor(sourceFile, recipe);
     }
 
     @Override
