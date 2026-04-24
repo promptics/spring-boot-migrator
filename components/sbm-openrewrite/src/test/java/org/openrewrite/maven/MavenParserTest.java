@@ -445,7 +445,7 @@ public class MavenParserTest {
             }
 
             @Override
-            public void downloadError(GroupArtifactVersion gav, Pom containing) {
+            public void downloadError(GroupArtifactVersion gav, List<String> attemptedUris, Pom containing) {
                 throw new RewriteMavenDownloadingException("Failed to download dependency: %s".formatted(gav.toString()), null, gav);
             }
 

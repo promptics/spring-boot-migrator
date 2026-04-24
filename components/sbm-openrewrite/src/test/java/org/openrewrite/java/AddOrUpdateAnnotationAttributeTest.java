@@ -37,7 +37,7 @@ public class AddOrUpdateAnnotationAttributeTest {
         J.CompilationUnit compilationUnit = OpenRewriteTestSupport.createCompilationUnit(code);
 
         J.Annotation annotation = compilationUnit.getClasses().get(0).getLeadingAnnotations().get(0);
-        AddOrUpdateAnnotationAttribute javaIsoVisitor = new AddOrUpdateAnnotationAttribute(((JavaType.Class)annotation.getType()).getFullyQualifiedName(), "forRemoval", "true", true);
+        AddOrUpdateAnnotationAttribute javaIsoVisitor = new AddOrUpdateAnnotationAttribute(((JavaType.Class)annotation.getType()).getFullyQualifiedName(), "forRemoval", "true", null, true, null);
 
         String refactoredCu = javaIsoVisitor.run(new InMemoryLargeSourceSet(List.of(compilationUnit)), new InMemoryExecutionContext()).getChangeset().getAllResults().get(0).getAfter().printAll();
 
@@ -50,7 +50,7 @@ public class AddOrUpdateAnnotationAttributeTest {
         J.CompilationUnit compilationUnit = OpenRewriteTestSupport.createCompilationUnit(code);
 
         J.Annotation annotation = compilationUnit.getClasses().get(0).getLeadingAnnotations().get(0);
-        AddOrUpdateAnnotationAttribute javaIsoVisitor = new AddOrUpdateAnnotationAttribute(((JavaType.Class)annotation.getType()).getFullyQualifiedName(), "since", "2020", true);
+        AddOrUpdateAnnotationAttribute javaIsoVisitor = new AddOrUpdateAnnotationAttribute(((JavaType.Class)annotation.getType()).getFullyQualifiedName(), "since", "2020", null, true, null);
         String refactoredCu = javaIsoVisitor.run(new InMemoryLargeSourceSet(List.of(compilationUnit)), new InMemoryExecutionContext(t -> fail(t))).getChangeset().getAllResults().get(0).getAfter().printAll();
 
         assertThat(refactoredCu).isEqualTo("@Deprecated(since = \"2020\") public class Foo {}");
@@ -61,7 +61,7 @@ public class AddOrUpdateAnnotationAttributeTest {
         String code = "@Deprecated(forRemoval = false) public class Foo {}";
         J.CompilationUnit compilationUnit = OpenRewriteTestSupport.createCompilationUnit(code);
         J.Annotation annotation = compilationUnit.getClasses().get(0).getLeadingAnnotations().get(0);
-        AddOrUpdateAnnotationAttribute javaIsoVisitor = new AddOrUpdateAnnotationAttribute(((JavaType.Class)annotation.getType()).getFullyQualifiedName(), "forRemoval", "true", false);
+        AddOrUpdateAnnotationAttribute javaIsoVisitor = new AddOrUpdateAnnotationAttribute(((JavaType.Class)annotation.getType()).getFullyQualifiedName(), "forRemoval", "true", null, false, null);
         String refactoredCu = javaIsoVisitor.run(new InMemoryLargeSourceSet(List.of(compilationUnit)), new InMemoryExecutionContext()).getChangeset().getAllResults().get(0).getAfter().printAll();
         assertThat(refactoredCu).isEqualTo("@Deprecated(forRemoval = true) public class Foo {}");
     }
@@ -71,7 +71,7 @@ public class AddOrUpdateAnnotationAttributeTest {
         String code = "@Deprecated(forRemoval = false, since = \"2020\") public class Foo {}";
         J.CompilationUnit compilationUnit = OpenRewriteTestSupport.createCompilationUnit(code);
         J.Annotation annotation = compilationUnit.getClasses().get(0).getLeadingAnnotations().get(0);
-        AddOrUpdateAnnotationAttribute javaIsoVisitor = new AddOrUpdateAnnotationAttribute(((JavaType.Class)annotation.getType()).getFullyQualifiedName(), "forRemoval", "true", false);
+        AddOrUpdateAnnotationAttribute javaIsoVisitor = new AddOrUpdateAnnotationAttribute(((JavaType.Class)annotation.getType()).getFullyQualifiedName(), "forRemoval", "true", null, false, null);
         String refactoredCu = javaIsoVisitor.run(new InMemoryLargeSourceSet(List.of(compilationUnit)), new InMemoryExecutionContext()).getChangeset().getAllResults().get(0).getAfter().printAll();
         assertThat(refactoredCu).isEqualTo("@Deprecated(forRemoval = true, since = \"2020\") public class Foo {}");
     }
@@ -81,7 +81,7 @@ public class AddOrUpdateAnnotationAttributeTest {
         String code = "@Deprecated(since = \"2020\", forRemoval = false) public class Foo {}";
         J.CompilationUnit compilationUnit = OpenRewriteTestSupport.createCompilationUnit(code);
         J.Annotation annotation = compilationUnit.getClasses().get(0).getLeadingAnnotations().get(0);
-        AddOrUpdateAnnotationAttribute javaIsoVisitor = new AddOrUpdateAnnotationAttribute(((JavaType.Class)annotation.getType()).getFullyQualifiedName(), "forRemoval", "true", false);
+        AddOrUpdateAnnotationAttribute javaIsoVisitor = new AddOrUpdateAnnotationAttribute(((JavaType.Class)annotation.getType()).getFullyQualifiedName(), "forRemoval", "true", null, false, null);
         String refactoredCu = javaIsoVisitor.run(new InMemoryLargeSourceSet(List.of(compilationUnit)), new InMemoryExecutionContext()).getChangeset().getAllResults().get(0).getAfter().printAll();
         assertThat(refactoredCu).isEqualTo("@Deprecated(since = \"2020\", forRemoval = true) public class Foo {}");
     }
@@ -91,7 +91,7 @@ public class AddOrUpdateAnnotationAttributeTest {
         String code = "@Deprecated(forRemoval = true) public class Foo {}";
         J.CompilationUnit compilationUnit = OpenRewriteTestSupport.createCompilationUnit(code);
         J.Annotation annotation = compilationUnit.getClasses().get(0).getLeadingAnnotations().get(0);
-        AddOrUpdateAnnotationAttribute javaIsoVisitor = new AddOrUpdateAnnotationAttribute(((JavaType.Class)annotation.getType()).getFullyQualifiedName(), "since", "2020", false);
+        AddOrUpdateAnnotationAttribute javaIsoVisitor = new AddOrUpdateAnnotationAttribute(((JavaType.Class)annotation.getType()).getFullyQualifiedName(), "since", "2020", null, false, null);
         String refactoredCu = javaIsoVisitor.run(new InMemoryLargeSourceSet(List.of(compilationUnit)), new InMemoryExecutionContext(t -> fail(t))).getChangeset().getAllResults().get(0).getAfter().printAll();
         assertThat(refactoredCu).isEqualTo("@Deprecated(since = \"2020\", forRemoval = true) public class Foo {}");
     }

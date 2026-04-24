@@ -193,9 +193,9 @@ public class UpgradeUnmanagedSpringProject extends Recipe {
         String relativePath = "";
         ResolvedPom containingPom = null;
         List<MavenRepository> repositories = new ArrayList<>();
-        repositories.add(new MavenRepository("repository.spring.milestone", "https://repo.spring.io/milestone", "true", "true", null, null));
-        repositories.add(new MavenRepository("spring-snapshot", "https://repo.spring.io/snapshot", "false", "true", null, null));
-        repositories.add(new MavenRepository("spring-release", "https://repo.spring.io/release", "true", "false", null, null));
+        repositories.add(new MavenRepository("repository.spring.milestone", "https://repo.spring.io/milestone", "true", "true", false, null, null, null, null));
+        repositories.add(new MavenRepository("spring-snapshot", "https://repo.spring.io/snapshot", "false", "true", false, null, null, null, null));
+        repositories.add(new MavenRepository("spring-release", "https://repo.spring.io/release", "true", "false", false, null, null, null, null));
         Pom pom = null;
         ResolvedPom resolvedPom = null;
         Map<String, String> dependencyMap = new HashMap<>();

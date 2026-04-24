@@ -67,7 +67,7 @@ public class UpgradeDependencyVersionTest {
                 "spring-boot-starter-parent",
                 "2.5.6",
                 null,
-                List.of()
+                null
         ).run(new InMemoryLargeSourceSet(List.of(maven)), new InMemoryExecutionContext(t -> fail(t)));
 
         assertThat(recipeRun.getChangeset().getAllResults().get(0).getAfter().printAll()).isEqualTo(
