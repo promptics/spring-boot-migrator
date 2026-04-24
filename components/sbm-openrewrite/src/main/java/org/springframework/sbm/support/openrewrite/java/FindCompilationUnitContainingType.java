@@ -38,7 +38,12 @@ public class FindCompilationUnitContainingType extends Recipe {
     }
 
     @Override
-    protected @NotNull TreeVisitor<?, ExecutionContext> getVisitor() {
+    public String getDescription() {
+        return getDisplayName();
+    }
+
+    @Override
+    public @NotNull TreeVisitor<?, ExecutionContext> getVisitor() {
         return new JavaIsoVisitor<>() {
             public J.CompilationUnit visitCompilationUnit(J.CompilationUnit cu, ExecutionContext executionContext) {
                 J.CompilationUnit compilationUnit = super.visitCompilationUnit(cu, executionContext);

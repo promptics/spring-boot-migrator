@@ -26,6 +26,7 @@ import org.springframework.sbm.project.resource.SbmApplicationProperties;
 import org.springframework.sbm.scopes.annotations.ScanScope;
 import org.springframework.stereotype.Component;
 
+import java.net.URI;
 import java.nio.file.Path;
 import java.util.Collection;
 import java.util.Collections;
@@ -67,6 +68,11 @@ public class RewriteJavaParser implements JavaParser {
     @Override
     public JavaParser reset() {
         return this.javaParser.reset();
+    }
+
+    @Override
+    public JavaParser reset(Collection<URI> uris) {
+        return this.javaParser.reset(uris);
     }
 
     @Override

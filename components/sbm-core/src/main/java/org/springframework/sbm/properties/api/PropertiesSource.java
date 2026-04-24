@@ -55,7 +55,7 @@ public class PropertiesSource extends RewriteSourceFileHolder<Properties.File> {
         if (FindProperties.find(getSourceFile(), propertyName, false).isEmpty()) {
             apply(new AddProperty(propertyName, propertyValue));
         } else {
-            apply(new ChangePropertyValue(propertyName, propertyValue, null, null, null));
+            apply(new ChangePropertyValue(propertyName, propertyValue, null, null, null, null));
         }
     }
 
@@ -63,7 +63,7 @@ public class PropertiesSource extends RewriteSourceFileHolder<Properties.File> {
         if (FindProperties.find(getSourceFile(), key, false).isEmpty()) {
             apply(new AddProperty(key, value));
         } else {
-            apply(new ChangePropertyValue(key, value, null, null, null));
+            apply(new ChangePropertyValue(key, value, null, null, null, null));
         }
     }
 

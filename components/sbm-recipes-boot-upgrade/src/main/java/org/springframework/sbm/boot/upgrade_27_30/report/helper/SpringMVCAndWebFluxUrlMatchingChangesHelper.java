@@ -53,7 +53,7 @@ public class SpringMVCAndWebFluxUrlMatchingChangesHelper extends SpringBootUpgra
             return false;
         }
 
-        GenericOpenRewriteRecipe<UsesType<ExecutionContext>> usesTypeRecipe = new GenericOpenRewriteRecipe<>(() -> new UsesType<>(SPRING_REST_CONTROLLER_FQN));
+        GenericOpenRewriteRecipe<UsesType<ExecutionContext>> usesTypeRecipe = new GenericOpenRewriteRecipe<>(() -> new UsesType<>(SPRING_REST_CONTROLLER_FQN, true));
 
         matches = context.getProjectJavaSources().find(usesTypeRecipe).stream()
                 .filter(m -> OpenRewriteJavaSource.class.isInstance(m))

@@ -29,7 +29,13 @@ public class FilterInterfaceVisitor extends Recipe {
 
     private final UUID id = Tree.randomId();
 
-    protected TreeVisitor<?, ExecutionContext> getVisitor() {
+    @Override
+    public String getDescription() {
+        return getDisplayName();
+    }
+
+    @Override
+    public TreeVisitor<?, ExecutionContext> getVisitor() {
         return new JavaIsoVisitor<ExecutionContext>() {
             @Override
             public J.ClassDeclaration visitClassDeclaration(J.ClassDeclaration classDecl, ExecutionContext executionContext) {
