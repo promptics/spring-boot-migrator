@@ -1,0 +1,156 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <parent>
+        <groupId>org.springframework.sbm</groupId>
+        <artifactId>spring-boot-migrator</artifactId>
+        <version>0.15.2-SNAPSHOT</version>
+    </parent>
+
+    <!--
+      Internal copy of spring-rewrite-commons-launcher, sourced by decompiling the
+      published 0.1.0-SNAPSHOT (timestamp 20240606.112738-31) and consolidating
+      utils/launcher/plugin-invoker-{shared,maven,gradle} into a single Reactor
+      module so SBM can keep OR up-to-date without waiting on the (stale) upstream
+      spring-projects-experimental/spring-rewrite-commons.
+
+      groupId/artifactId/version match the original GAV so existing consumers
+      resolve from the Reactor.
+    -->
+    <groupId>org.springframework.rewrite</groupId>
+    <artifactId>spring-rewrite-commons-launcher</artifactId>
+    <version>0.1.0-SNAPSHOT</version>
+    <name>Internal copy of spring-rewrite-commons-launcher</name>
+
+    <properties>
+        <maven.embedder.version>3.9.6</maven.embedder.version>
+        <jaxb-api.version>2.3.1</jaxb-api.version>
+        <plexus-sec-dispatcher.version>2.0</plexus-sec-dispatcher.version>
+        <plexus-cipher.version>2.0</plexus-cipher.version>
+    </properties>
+
+    <dependencies>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-configuration-processor</artifactId>
+            <optional>true</optional>
+        </dependency>
+
+        <dependency>
+            <groupId>org.openrewrite</groupId>
+            <artifactId>rewrite-core</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.openrewrite</groupId>
+            <artifactId>rewrite-maven</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.openrewrite</groupId>
+            <artifactId>rewrite-java</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.openrewrite</groupId>
+            <artifactId>rewrite-java-17</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.openrewrite</groupId>
+            <artifactId>rewrite-json</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.openrewrite</groupId>
+            <artifactId>rewrite-yaml</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.openrewrite</groupId>
+            <artifactId>rewrite-xml</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.openrewrite</groupId>
+            <artifactId>rewrite-properties</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.openrewrite</groupId>
+            <artifactId>rewrite-hcl</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.openrewrite</groupId>
+            <artifactId>rewrite-protobuf</artifactId>
+        </dependency>
+
+        <dependency>
+            <groupId>javax.xml.bind</groupId>
+            <artifactId>jaxb-api</artifactId>
+            <version>${jaxb-api.version}</version>
+        </dependency>
+
+        <!-- required by MavenPasswordDecrypter -->
+        <dependency>
+            <groupId>org.codehaus.plexus</groupId>
+            <artifactId>plexus-sec-dispatcher</artifactId>
+            <version>${plexus-sec-dispatcher.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.codehaus.plexus</groupId>
+            <artifactId>plexus-cipher</artifactId>
+            <version>${plexus-cipher.version}</version>
+        </dependency>
+
+        <!-- required by MavenConfigFileParser -->
+        <dependency>
+            <groupId>org.apache.maven</groupId>
+            <artifactId>maven-embedder</artifactId>
+            <version>${maven.embedder.version}</version>
+            <exclusions>
+                <exclusion>
+                    <groupId>org.sonatype.plexus</groupId>
+                    <artifactId>plexus-cipher</artifactId>
+                </exclusion>
+            </exclusions>
+        </dependency>
+
+        <!-- maven-invoker is used by the (consolidated) plugin-invoker-maven sources -->
+        <dependency>
+            <groupId>org.apache.maven.shared</groupId>
+            <artifactId>maven-invoker</artifactId>
+            <version>3.2.0</version>
+        </dependency>
+
+        <!-- Lombok used only at compile time (decompiled sources expand annotations away) -->
+        <dependency>
+            <groupId>org.projectlombok</groupId>
+            <artifactId>lombok</artifactId>
+            <scope>provided</scope>
+        </dependency>
+
+        <!-- silence Spring's @Nullable enum warnings -->
+        <dependency>
+            <groupId>com.google.code.findbugs</groupId>
+            <artifactId>jsr305</artifactId>
+            <version>3.0.2</version>
+            <scope>provided</scope>
+        </dependency>
+    </dependencies>
+
+    <build>
+        <plugins>
+            <!-- The decompiled sources lose the original license headers; the upstream
+                 project ships under Apache License 2.0 (Moderne, Inc.). The original
+                 GAV (org.springframework.rewrite:spring-rewrite-commons-launcher:0.1.0)
+                 and the upstream license remain unchanged. We skip the local header
+                 check for this internal copy. -->
+            <plugin>
+                <groupId>com.mycila</groupId>
+                <artifactId>license-maven-plugin</artifactId>
+                <configuration>
+                    <skip>true</skip>
+                </configuration>
+            </plugin>
+        </plugins>
+    </build>
+</project>

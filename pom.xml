@@ -11,7 +11,7 @@
         <jar.name>spring-boot-migrator</jar.name>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
-        <openrewrite.version>8.46.0</openrewrite.version>
+        <openrewrite.version>8.80.1</openrewrite.version>
         <spring-rewrite-commons-launcher.version>0.1.0-SNAPSHOT</spring-rewrite-commons-launcher.version>
         <spring-boot.version>3.1.2</spring-boot.version>
         <jaxb-maven-plugin.version>2.5.0</jaxb-maven-plugin.version>
@@ -21,8 +21,8 @@
         <shrinkwrap.resolvers.version>3.2.1</shrinkwrap.resolvers.version>
         <java.version>17</java.version>
         <!--        <spring-shell.version>2.1.10</spring-shell.version>-->
-        <openrewrite.spring.version>6.1.0</openrewrite.spring.version>
-        <rewrite-migrate-java.version>3.2.0</rewrite-migrate-java.version>
+        <openrewrite.spring.version>6.30.1</openrewrite.spring.version>
+        <rewrite-migrate-java.version>3.33.1</rewrite-migrate-java.version>
         <!--        <progressbar.version>0.9.5</progressbar.version>-->
         <!--        <testcontainers.version>1.17.6</testcontainers.version>-->
         <lombok.version>1.18.30</lombok.version>
@@ -51,6 +51,7 @@
 
     <modules>
         <!-- <module>components/sbm-utils</module> -->
+        <module>sbm-support-rewrite</module>
         <module>components/sbm-openrewrite</module>
         <module>components/sbm-core</module>
         <module>components/test-helper</module>
@@ -77,13 +78,6 @@
             <releases>
                 <enabled>false</enabled>
             </releases>
-        </repository>
-        <repository>
-            <id>gradle-libs-releases</id>
-            <url>https://repo.gradle.org/gradle/libs-releases</url>
-            <snapshots>
-                <enabled>false</enabled>
-            </snapshots>
         </repository>
     </repositories>
 
@@ -262,20 +256,9 @@
             <artifactId>jcl-over-slf4j</artifactId>
             <version>2.0.6</version>
         </dependency>
-        <dependency>
-            <groupId>org.springframework.rewrite</groupId>
-            <artifactId>spring-rewrite-commons-launcher</artifactId>
-            <version>${spring-rewrite-commons-launcher.version}</version>
-            <exclusions>
-                <!-- gradle-tooling-api is only available from repo.gradle.org which
-                     is not reachable from some CI sandboxes. SBM does not use the
-                     Gradle plugin invoker directly, so excluding is safe. -->
-                <exclusion>
-                    <groupId>org.springframework.rewrite</groupId>
-                    <artifactId>spring-rewrite-commons-plugin-invoker-gradle</artifactId>
-                </exclusion>
-            </exclusions>
-        </dependency>
+        <!-- spring-rewrite-commons-launcher used to be declared as a globally-inherited
+             dependency here. It is now a Reactor module (sbm-support-rewrite/) and is
+             pulled in directly by the modules that need it (sbm-core, sbm-openrewrite). -->
     </dependencies>
     <build>
         <finalName>${jar.name}</finalName>

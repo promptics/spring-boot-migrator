@@ -83,5 +83,10 @@
             <artifactId>maven-resolver-spi</artifactId>
             <version>1.9.15</version>
         </dependency>
+        <dependency>
+            <groupId>org.springframework.rewrite</groupId>
+            <artifactId>spring-rewrite-commons-launcher</artifactId>
+            <version>${spring-rewrite-commons-launcher.version}</version>
+        </dependency>
     </dependencies>
 </project>
