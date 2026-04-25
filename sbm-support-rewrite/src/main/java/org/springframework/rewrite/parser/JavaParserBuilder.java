@@ -1,64 +1,93 @@
+/*
+ * Copyright 2021 - 2023 the original author or authors.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      https://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 package org.springframework.rewrite.parser;
+
+import org.openrewrite.ExecutionContext;
+import org.openrewrite.java.JavaParser;
+import org.openrewrite.java.internal.JavaTypeCache;
 
 import java.nio.charset.Charset;
 import java.util.Collection;
-import org.openrewrite.ExecutionContext;
-import org.openrewrite.java.JavaParser;
-import org.openrewrite.java.JavaParser.Builder;
-import org.openrewrite.java.internal.JavaTypeCache;
 
-public class JavaParserBuilder extends Builder {
-   private Builder delegate = JavaParser.fromJavaVersion();
+public class JavaParserBuilder extends JavaParser.Builder {
 
-   public JavaParser build() {
-      return this.delegate.build();
-   }
+	private JavaParser.Builder delegate = JavaParser.fromJavaVersion();
 
-   public Builder charset(Charset charset) {
-      return this.delegate.charset(charset);
-   }
+	@Override
+	public JavaParser build() {
+		return delegate.build();
+	}
 
-   public Builder classpath(Collection classpath) {
-      return this.delegate.classpath(classpath);
-   }
+	@Override
+	public JavaParser.Builder charset(Charset charset) {
+		return delegate.charset(charset);
+	}
 
-   public Builder classpath(String... classpath) {
-      return this.delegate.classpath(classpath);
-   }
+	@Override
+	public JavaParser.Builder classpath(Collection classpath) {
+		return delegate.classpath(classpath);
+	}
 
-   public Builder classpathFromResources(ExecutionContext ctx, String... classpath) {
-      return this.delegate.classpathFromResources(ctx, classpath);
-   }
+	@Override
+	public JavaParser.Builder classpath(String... classpath) {
+		return delegate.classpath(classpath);
+	}
 
-   public Builder getDelegate() {
-      return this.delegate;
-   }
+	@Override
+	public JavaParser.Builder classpathFromResources(ExecutionContext ctx, String... classpath) {
+		return delegate.classpathFromResources(ctx, classpath);
+	}
 
-   public Builder classpath(byte[]... classpath) {
-      return this.delegate.classpath(classpath);
-   }
+	public JavaParser.Builder getDelegate() {
+		return delegate;
+	}
 
-   public Builder logCompilationWarningsAndErrors(boolean logCompilationWarningsAndErrors) {
-      return this.delegate.logCompilationWarningsAndErrors(logCompilationWarningsAndErrors);
-   }
+	@Override
+	public JavaParser.Builder classpath(byte[]... classpath) {
+		return delegate.classpath(classpath);
+	}
 
-   public Builder typeCache(JavaTypeCache javaTypeCache) {
-      return this.delegate.typeCache(javaTypeCache);
-   }
+	@Override
+	public JavaParser.Builder logCompilationWarningsAndErrors(boolean logCompilationWarningsAndErrors) {
+		return delegate.logCompilationWarningsAndErrors(logCompilationWarningsAndErrors);
+	}
 
-   public Builder dependsOn(Collection collection) {
-      return this.delegate.dependsOn(collection);
-   }
+	@Override
+	public JavaParser.Builder typeCache(JavaTypeCache javaTypeCache) {
+		return delegate.typeCache(javaTypeCache);
+	}
 
-   public Builder dependsOn(String... inputsAsStrings) {
-      return this.delegate.dependsOn(inputsAsStrings);
-   }
+	@Override
+	public JavaParser.Builder dependsOn(Collection collection) {
+		return delegate.dependsOn(collection);
+	}
 
-   public Builder styles(Iterable iterable) {
-      return this.delegate.styles(iterable);
-   }
+	@Override
+	public JavaParser.Builder dependsOn(String... inputsAsStrings) {
+		return delegate.dependsOn(inputsAsStrings);
+	}
 
-   public String getDslName() {
-      return this.delegate.getDslName();
-   }
+	@Override
+	public JavaParser.Builder styles(Iterable iterable) {
+		return delegate.styles(iterable);
+	}
+
+	@Override
+	public String getDslName() {
+		return delegate.getDslName();
+	}
+
 }

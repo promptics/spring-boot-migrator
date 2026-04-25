@@ -79,6 +79,15 @@
                 <enabled>false</enabled>
             </releases>
         </repository>
+        <repository>
+            <!-- gradle-tooling-api is consumed by sbm-support-rewrite/.../plugin/gradle/.
+                 The artefact is only published in the Gradle distribution repo. -->
+            <id>gradle-libs-releases</id>
+            <url>https://repo.gradle.org/gradle/libs-releases</url>
+            <snapshots>
+                <enabled>false</enabled>
+            </snapshots>
+        </repository>
     </repositories>
 
     <dependencyManagement>

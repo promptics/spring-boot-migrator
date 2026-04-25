@@ -1,80 +1,118 @@
+/*
+ * Copyright 2021 - 2023 the original author or authors.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      https://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 package org.springframework.rewrite.resource;
 
-import java.nio.file.Path;
 import org.openrewrite.SourceFile;
 import org.openrewrite.internal.lang.Nullable;
 
-public class RewriteSourceFileHolder<T extends SourceFile> extends BaseProjectResource implements InternalProjectResource {
-   private T sourceFile;
-   private final Path absoluteProjectDir;
+import java.nio.file.Path;
 
-   public RewriteSourceFileHolder(Path absoluteProjectDir, T sourceFile) {
-      this.absoluteProjectDir = absoluteProjectDir;
-      this.sourceFile = sourceFile;
-      if (!this.absoluteProjectDir.isAbsolute()) {
-         throw new IllegalArgumentException(String.format("Given projectDir '%s' is not absolute.", absoluteProjectDir));
-      }
-   }
+public class RewriteSourceFileHolder<T extends SourceFile> extends BaseProjectResource
+		implements InternalProjectResource {
 
-   public Path getAbsoluteProjectDir() {
-      return this.absoluteProjectDir;
-   }
+	private T sourceFile;
 
-   @Override
-   public String print() {
-      try {
-         return this.sourceFile.printAll();
-      } catch (Exception var2) {
-         throw new RuntimeException("Exception while printing '%s'".formatted(this.sourceFile.getSourcePath()), var2);
-      }
-   }
+	final private Path absoluteProjectDir;
 
-   @Override
-   public Path getSourcePath() {
-      return this.sourceFile.getSourcePath();
-   }
+	/**
+	 * @param absoluteProjectDir the absolute path to project root
+	 * @param sourceFile the OpenRewrite {@code SourceFile}
+	 */
+	public RewriteSourceFileHolder(Path absoluteProjectDir, T sourceFile) {
+		this.absoluteProjectDir = absoluteProjectDir;
+		this.sourceFile = sourceFile;
+		if (!this.absoluteProjectDir.isAbsolute()) {
+			throw new IllegalArgumentException(
+					String.format("Given projectDir '%s' is not absolute.", absoluteProjectDir));
+		}
+	}
 
-   @Override
-   public Path getAbsolutePath() {
-      return this.absoluteProjectDir.resolve(this.getSourcePath()).normalize().toAbsolutePath();
-   }
+	public Path getAbsoluteProjectDir() {
+		return absoluteProjectDir;
+	}
 
-   @Override
-   public void moveTo(Path newPath) {
-      if (newPath.isAbsolute()) {
-         newPath = this.absoluteProjectDir.relativize(newPath);
-      }
+	public String print() {
+		try {
+			return sourceFile.printAll();
+		}
+		catch (Exception e) {
+			throw new RuntimeException("Exception while printing '%s'".formatted(sourceFile.getSourcePath()), e);
+		}
+	}
 
-      if (this.absoluteProjectDir.resolve(newPath).toFile().isDirectory()) {
-         newPath = newPath.resolve(this.getAbsolutePath().getFileName());
-      }
+	@Override
+	public Path getSourcePath() {
+		return sourceFile.getSourcePath();
+	}
 
-      this.sourceFile = (T)this.sourceFile.withSourcePath(newPath);
-      this.markChanged();
-   }
+	@Override
+	public Path getAbsolutePath() {
+		return absoluteProjectDir.resolve(getSourcePath()).normalize().toAbsolutePath();
+	}
 
-   public T getSourceFile() {
-      return this.sourceFile;
-   }
+	/**
+	 * Move the represented resource to another location.
+	 * <p>
+	 * The given {@code newPath} will be relativized if absolute. The returned instance
+	 * represents the same file at the new location.
+	 * @param newPath relative path with filename for the destination
+	 */
+	@Override
+	public void moveTo(Path newPath) {
+		if (newPath.isAbsolute()) {
+			newPath = absoluteProjectDir.relativize(newPath);
+		}
+		if (absoluteProjectDir.resolve(newPath).toFile().isDirectory()) {
+			newPath = newPath.resolve(this.getAbsolutePath().getFileName());
+		}
+		sourceFile = sourceFile.withSourcePath(newPath);
+		this.markChanged();
+	}
 
-   public void replaceWith(@Nullable SourceFile fixedSourceFile) {
-      if (this.sourceFile != null && fixedSourceFile != null && !this.sourceFile.printAll().equals(fixedSourceFile.printAll())) {
-         this.markChanged();
-      }
+	public T getSourceFile() {
+		return sourceFile;
+	}
 
-      this.sourceFile = (T)fixedSourceFile;
-   }
+	/**
+	 * Replace current source file with {@code fixedSourceFile}.
+	 * <p>
+	 * If {@code fixedSourceFile.print()} differs from current file content, source file
+	 * is marked as changed.
+	 * @param fixedSourceFile the new source file
+	 */
+	@SuppressWarnings("unchecked")
+	public void replaceWith(@Nullable SourceFile fixedSourceFile) {
+		if (sourceFile != null && fixedSourceFile != null
+				&& !sourceFile.printAll().equals(fixedSourceFile.printAll())) {
+			markChanged();
+		}
+		sourceFile = (T) fixedSourceFile;
+	}
 
-   public void markChanged() {
-      this.isChanged = true;
-   }
+	public void markChanged() {
+		this.isChanged = true;
+	}
 
-   public Class<? extends SourceFile> getType() {
-      return (Class<? extends SourceFile>)this.getSourceFile().getClass();
-   }
+	public Class<? extends SourceFile> getType() {
+		return getSourceFile().getClass();
+	}
 
-   @Override
-   public String toString() {
-      return this.getAbsolutePath().toString();
-   }
+	@Override
+	public String toString() {
+		return getAbsolutePath().toString();
+	}
+
 }

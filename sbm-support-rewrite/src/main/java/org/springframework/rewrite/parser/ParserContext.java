@@ -1,71 +1,95 @@
+/*
+ * Copyright 2021 - 2023 the original author or authors.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      https://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 package org.springframework.rewrite.parser;
+
+import org.openrewrite.xml.tree.Xml;
+import org.springframework.core.io.Resource;
+import org.springframework.rewrite.parser.maven.MavenProject;
+import org.springframework.rewrite.utils.ResourceUtil;
 
 import java.nio.file.Path;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
-import org.openrewrite.xml.tree.Xml.Document;
-import org.springframework.core.io.Resource;
-import org.springframework.rewrite.parser.maven.MavenProject;
-import org.springframework.rewrite.utils.ResourceUtil;
 
+/**
+ * @author Fabian Krüger
+ */
 public class ParserContext {
-   private final Path baseDir;
-   private final List<Resource> resources;
-   private final List<MavenProject> sortedProjects;
-   private Map<Path, Document> pathDocumentMap;
 
-   public ParserContext(Path baseDir, List<Resource> resources, List<MavenProject> sortedProjects) {
-      this.baseDir = baseDir;
-      this.resources = resources;
-      this.sortedProjects = sortedProjects;
-   }
+	private final Path baseDir;
 
-   public List<Resource> getResources() {
-      return this.resources;
-   }
+	private final List<Resource> resources;
 
-   public List<MavenProject> getSortedProjects() {
-      return this.sortedProjects;
-   }
+	private final List<MavenProject> sortedProjects;
 
-   public List<String> getActiveProfiles() {
-      return List.of("default");
-   }
+	public ParserContext(Path baseDir, List<Resource> resources, List<MavenProject> sortedProjects) {
+		this.baseDir = baseDir;
+		this.resources = resources;
+		this.sortedProjects = sortedProjects;
+	}
 
-   public Resource getMatchingBuildFileResource(MavenProject pom) {
-      return this.resources
-         .stream()
-         .filter(r -> ResourceUtil.getPath(r).toString().equals(pom.getPomFilePath().toString()))
-         .findFirst()
-         .orElseThrow(
-            () -> new IllegalStateException(
-                  "Could not find a resource in the list of resources that matches the path of MavenProject '%s'".formatted(pom.getPomFile().toString())
-               )
-         );
-   }
+	private Map<Path, Xml.Document> pathDocumentMap;
 
-   public List<Resource> getBuildFileResources() {
-      return this.sortedProjects.stream().map(p -> p.getPomFile()).toList();
-   }
+	public List<Resource> getResources() {
+		return resources;
+	}
 
-   public Document getXmlDocument(Path path) {
-      return this.pathDocumentMap.get(path);
-   }
+	public List<MavenProject> getSortedProjects() {
+		return sortedProjects;
+	}
 
-   public void setParsedBuildFiles(List<Document> xmlDocuments) {
-      this.pathDocumentMap = xmlDocuments.stream()
-         .peek(doc -> this.addSourceFileToModel(this.baseDir, this.getSortedProjects(), doc))
-         .collect(Collectors.toMap(doc -> this.baseDir.resolve(doc.getSourcePath()), doc -> (Document)doc));
-   }
+	public List<String> getActiveProfiles() {
+		// FIXME: Add support for Maven profiles
+		return List.of("default");
+	}
 
-   public List<Document> getSortedBuildFileDocuments() {
-      return this.getSortedProjects().stream().map(p -> this.pathDocumentMap.get(p.getFile().toPath())).toList();
-   }
+	public Resource getMatchingBuildFileResource(MavenProject pom) {
+		return resources.stream()
+			.filter(r -> ResourceUtil.getPath(r).toString().equals(pom.getPomFilePath().toString()))
+			.findFirst()
+			.orElseThrow(() -> new IllegalStateException(
+					"Could not find a resource in the list of resources that matches the path of MavenProject '%s'"
+						.formatted(pom.getPomFile().toString())));
+	}
 
-   private void addSourceFileToModel(Path baseDir, List<MavenProject> sortedProjectsList, Document s) {
-      sortedProjectsList.stream()
-         .filter(p -> ResourceUtil.getPath(p.getPomFile()).toString().equals(baseDir.resolve(s.getSourcePath()).toString()))
-         .forEach(p -> p.setSourceFile(s));
-   }
+	public List<Resource> getBuildFileResources() {
+		return sortedProjects.stream().map(p -> p.getPomFile()).toList();
+	}
+
+	public Xml.Document getXmlDocument(Path path) {
+		return pathDocumentMap.get(path);
+	}
+
+	public void setParsedBuildFiles(List<Xml.Document> xmlDocuments) {
+		this.pathDocumentMap = xmlDocuments.stream()
+			.peek(doc -> addSourceFileToModel(baseDir, getSortedProjects(), doc))
+			.collect(Collectors.toMap(doc -> baseDir.resolve(doc.getSourcePath()), doc -> doc));
+	}
+
+	public List<Xml.Document> getSortedBuildFileDocuments() {
+		return getSortedProjects().stream().map(p -> pathDocumentMap.get(p.getFile().toPath())).toList();
+	}
+
+	private void addSourceFileToModel(Path baseDir, List<MavenProject> sortedProjectsList, Xml.Document s) {
+		sortedProjectsList.stream()
+			.filter(p -> ResourceUtil.getPath(p.getPomFile())
+				.toString()
+				.equals(baseDir.resolve(s.getSourcePath()).toString()))
+			.forEach(p -> p.setSourceFile(s));
+	}
+
 }

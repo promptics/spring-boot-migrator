@@ -1,103 +1,127 @@
+/*
+ * Copyright 2021 - 2023 the original author or authors.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      https://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 package org.springframework.rewrite.resource;
 
-import java.nio.file.Path;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Optional;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
 import org.openrewrite.ExecutionContext;
 import org.openrewrite.Recipe;
 import org.openrewrite.Result;
 import org.openrewrite.SourceFile;
 import org.openrewrite.internal.InMemoryLargeSourceSet;
 
+import java.nio.file.Path;
+import java.util.*;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
+
+// TODO: make package private
 public class ProjectResourceSet {
-   private final List<RewriteSourceFileHolder<? extends SourceFile>> projectResources = new ArrayList<>();
-   private final ExecutionContext executionContext;
-   private final RewriteMigrationResultMerger migrationResultMerger;
 
-   public ProjectResourceSet(
-      List<RewriteSourceFileHolder<? extends SourceFile>> projectResources,
-      ExecutionContext executionContext,
-      RewriteMigrationResultMerger migrationResultMerger
-   ) {
-      this.executionContext = executionContext;
-      this.migrationResultMerger = migrationResultMerger;
-      this.projectResources.addAll(projectResources);
-   }
+	private final List<RewriteSourceFileHolder<? extends SourceFile>> projectResources = new ArrayList<>();
 
-   public List<RewriteSourceFileHolder<? extends SourceFile>> list() {
-      return this.stream().toList();
-   }
+	private final ExecutionContext executionContext;
 
-   public Stream<RewriteSourceFileHolder<? extends SourceFile>> stream() {
-      return this.projectResources.stream().filter(r -> r != null && !r.isDeleted());
-   }
+	private final RewriteMigrationResultMerger migrationResultMerger;
 
-   public ProjectResource get(int index) {
-      return this.list().get(index);
-   }
+	public ProjectResourceSet(List<RewriteSourceFileHolder<? extends SourceFile>> projectResources,
+			ExecutionContext executionContext, RewriteMigrationResultMerger migrationResultMerger) {
+		this.executionContext = executionContext;
+		this.migrationResultMerger = migrationResultMerger;
+		this.projectResources.addAll(projectResources);
+	}
 
-   public void add(RewriteSourceFileHolder<? extends SourceFile> newResource) {
-      this.projectResources.add(newResource);
-   }
+	public List<RewriteSourceFileHolder<? extends SourceFile>> list() {
+		return stream().toList();
+	}
 
-   public void replace(int index, RewriteSourceFileHolder<? extends SourceFile> newResource) {
-      this.projectResources.set(index, newResource);
-   }
+	public Stream<RewriteSourceFileHolder<? extends SourceFile>> stream() {
+		return projectResources.stream().filter(r -> r != null && !r.isDeleted());
+	}
 
-   public void replace(Path path, RewriteSourceFileHolder<? extends SourceFile> newResource) {
-      int index = this.indexOf(path);
-      this.projectResources.set(index, newResource);
-   }
+	public ProjectResource get(int index) {
+		return list().get(index);
+	}
 
-   public int size() {
-      return this.projectResources.size();
-   }
+	public void add(RewriteSourceFileHolder<? extends SourceFile> newResource) {
+		projectResources.add(newResource);
+	}
 
-   public int indexOf(Path absolutePath) {
-      return this.projectResources.stream().map(ProjectResource::getAbsolutePath).collect(Collectors.toList()).indexOf(absolutePath);
-   }
+	public void replace(int index, RewriteSourceFileHolder<? extends SourceFile> newResource) {
+		projectResources.set(index, newResource);
+	}
 
-   public void apply(Recipe... recipes) {
-      InMemoryLargeSourceSet largeSourceSet = new InMemoryLargeSourceSet(
-         this.projectResources.stream().map(RewriteSourceFileHolder::getSourceFile).filter(SourceFile.class::isInstance).map(SourceFile.class::cast).toList()
-      );
-      List<Result> results = (new Recipe() {
-         public String getDisplayName() {
-            return "Run a list of recipes";
-         }
+	public void replace(Path path, RewriteSourceFileHolder<? extends SourceFile> newResource) {
+		int index = indexOf(path);
+		projectResources.set(index, newResource);
+	}
 
-         public String getDescription() {
-            return this.getDisplayName();
-         }
+	public int size() {
+		return projectResources.size();
+	}
 
-         public List<Recipe> getRecipeList() {
-            return Arrays.asList(recipes);
-         }
-      }).run(largeSourceSet, this.executionContext).getChangeset().getAllResults();
-      this.migrationResultMerger.mergeResults(this, results);
-   }
+	public int indexOf(Path absolutePath) {
+		return projectResources.stream()
+			.map(ProjectResource::getAbsolutePath)
+			.collect(Collectors.toList())
+			.indexOf(absolutePath);
+	}
 
-   void clearDeletedResources() {
-      Iterator<RewriteSourceFileHolder<? extends SourceFile>> iterator = this.projectResources.iterator();
+	public void apply(Recipe... recipes) {
+		InMemoryLargeSourceSet largeSourceSet = new InMemoryLargeSourceSet(projectResources.stream()
+			.map(RewriteSourceFileHolder::getSourceFile)
+			.filter(SourceFile.class::isInstance)
+			.map(SourceFile.class::cast)
+			.toList());
+		List<Result> results = new Recipe() {
+			@Override
+			public String getDisplayName() {
+				return "Run a list of recipes";
+			}
 
-      while (iterator.hasNext()) {
-         RewriteSourceFileHolder<? extends SourceFile> current = iterator.next();
-         if (current.isDeleted()) {
-            iterator.remove();
-         }
-      }
-   }
+			@Override
+			public String getDescription() {
+				return getDisplayName();
+			}
 
-   public Stream<RewriteSourceFileHolder<? extends SourceFile>> streamIncludingDeleted() {
-      return this.projectResources.stream();
-   }
+			@Override
+			public List<Recipe> getRecipeList() {
+				return Arrays.asList(recipes);
+			}
+		}.run(largeSourceSet, executionContext).getChangeset().getAllResults();
 
-   private Optional<RewriteSourceFileHolder<? extends SourceFile>> findResourceByPath(Path sourcePath) {
-      return this.projectResources.stream().filter(pr -> pr.getSourcePath().toString().equals(sourcePath.toString())).findFirst();
-   }
+		migrationResultMerger.mergeResults(this, results);
+	}
+
+	void clearDeletedResources() {
+		Iterator<RewriteSourceFileHolder<? extends SourceFile>> iterator = this.projectResources.iterator();
+		while (iterator.hasNext()) {
+			RewriteSourceFileHolder<? extends SourceFile> current = iterator.next();
+			if (current.isDeleted()) {
+				iterator.remove();
+			}
+		}
+	}
+
+	public Stream<RewriteSourceFileHolder<? extends SourceFile>> streamIncludingDeleted() {
+		return projectResources.stream();
+	}
+
+	private Optional<RewriteSourceFileHolder<? extends SourceFile>> findResourceByPath(Path sourcePath) {
+		return projectResources.stream()
+			.filter(pr -> pr.getSourcePath().toString().equals(sourcePath.toString()))
+			.findFirst();
+	}
+
 }

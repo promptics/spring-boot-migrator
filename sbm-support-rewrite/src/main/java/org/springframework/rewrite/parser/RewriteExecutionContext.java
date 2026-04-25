@@ -1,4 +1,24 @@
+/*
+ * Copyright 2021 - 2023 the original author or authors.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      https://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 package org.springframework.rewrite.parser;
+
+import org.openrewrite.ExecutionContext;
+import org.openrewrite.InMemoryExecutionContext;
+import org.openrewrite.Recipe;
+import org.openrewrite.internal.lang.Nullable;
 
 import java.util.Collection;
 import java.util.Map;
@@ -6,66 +26,73 @@ import java.util.Set;
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
-import org.openrewrite.ExecutionContext;
-import org.openrewrite.InMemoryExecutionContext;
-import org.openrewrite.Recipe;
-import org.openrewrite.internal.lang.Nullable;
 
 public class RewriteExecutionContext implements ExecutionContext {
-   private ExecutionContext delegate;
 
-   public RewriteExecutionContext(Consumer<Throwable> onError) {
-      this(new InMemoryExecutionContext(onError));
-   }
+	private ExecutionContext delegate;
 
-   public RewriteExecutionContext() {
-      this(new InMemoryExecutionContext(new RewriteExecutionContextErrorHandler(new RewriteExecutionContextErrorHandler.ThrowExceptionSwitch())));
-   }
+	public RewriteExecutionContext(Consumer<Throwable> onError) {
+		this(new InMemoryExecutionContext(onError));
+	}
 
-   public RewriteExecutionContext(ExecutionContext delegate) {
-      this.delegate = delegate;
-   }
+	public RewriteExecutionContext() {
+		this(new InMemoryExecutionContext(new RewriteExecutionContextErrorHandler(
+				new RewriteExecutionContextErrorHandler.ThrowExceptionSwitch())));
+	}
 
-   public void putMessage(String key, @Nullable Object value) {
-      this.delegate.putMessage(key, value);
-   }
+	public RewriteExecutionContext(ExecutionContext delegate) {
+		this.delegate = delegate;
+	}
 
-   @Nullable
-   public <T> T getMessage(String key) {
-      return (T)this.delegate.getMessage(key);
-   }
+	@Override
+	public void putMessage(String key, @Nullable Object value) {
+		delegate.putMessage(key, value);
+	}
 
-   public <V, C extends Collection<V>> C putMessageInCollection(String key, V value, Supplier<C> newCollection) {
-      return (C)this.delegate.putMessageInCollection(key, value, newCollection);
-   }
+	@Override
+	public <T> @Nullable T getMessage(String key) {
+		return delegate.getMessage(key);
+	}
 
-   public <T> Set<T> putMessageInSet(String key, T value) {
-      return this.delegate.putMessageInSet(key, value);
-   }
+	@Override
+	public <V, C extends Collection<V>> C putMessageInCollection(String key, V value, Supplier<C> newCollection) {
+		return delegate.putMessageInCollection(key, value, newCollection);
+	}
 
-   @Nullable
-   public <T> T pollMessage(String key) {
-      return (T)this.delegate.pollMessage(key);
-   }
+	@Override
+	public <T> Set<T> putMessageInSet(String key, T value) {
+		return delegate.putMessageInSet(key, value);
+	}
 
-   public <T> T pollMessage(String key, T defaultValue) {
-      return (T)this.delegate.pollMessage(key, defaultValue);
-   }
+	@Override
+	public <T> @Nullable T pollMessage(String key) {
+		return delegate.pollMessage(key);
+	}
 
-   public void putCurrentRecipe(Recipe recipe) {
-      this.delegate.putCurrentRecipe(recipe);
-   }
+	@Override
+	public <T> T pollMessage(String key, T defaultValue) {
+		return delegate.pollMessage(key, defaultValue);
+	}
 
-   public Consumer<Throwable> getOnError() {
-      return this.delegate.getOnError();
-   }
+	@Override
+	public void putCurrentRecipe(Recipe recipe) {
+		delegate.putCurrentRecipe(recipe);
+	}
 
-   public BiConsumer<Throwable, ExecutionContext> getOnTimeout() {
-      return this.delegate.getOnTimeout();
-   }
+	@Override
+	public Consumer<Throwable> getOnError() {
+		return delegate.getOnError();
+	}
 
-   // ExecutionContext#getMessages() became abstract in OR 8.x
-   public Map<String, Object> getMessages() {
-      return this.delegate.getMessages();
-   }
+	@Override
+	public BiConsumer<Throwable, ExecutionContext> getOnTimeout() {
+		return delegate.getOnTimeout();
+	}
+
+	// ExecutionContext#getMessages() became abstract in OR 8.x.
+	@Override
+	public Map<String, Object> getMessages() {
+		return delegate.getMessages();
+	}
+
 }

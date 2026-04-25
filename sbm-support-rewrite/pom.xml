@@ -10,14 +10,15 @@
     </parent>
 
     <!--
-      Internal copy of spring-rewrite-commons-launcher, sourced by decompiling the
-      published 0.1.0-SNAPSHOT (timestamp 20240606.112738-31) and consolidating
-      utils/launcher/plugin-invoker-{shared,maven,gradle} into a single Reactor
-      module so SBM can keep OR up-to-date without waiting on the (stale) upstream
-      spring-projects-experimental/spring-rewrite-commons.
+      Internal copy of spring-rewrite-commons. Sourced from
+      https://github.com/spring-projects/spring-rewrite-commons (commit 594c639,
+      2024-07-02). The upstream repo is no longer actively maintained, so the source
+      is consolidated here as a single Reactor module under SBM. The original GAV
+      (org.springframework.rewrite:spring-rewrite-commons-launcher:0.1.0-SNAPSHOT)
+      is preserved so existing consumers resolve from the Reactor.
 
-      groupId/artifactId/version match the original GAV so existing consumers
-      resolve from the Reactor.
+      All sub-modules of the upstream multi-module project are merged into this
+      single jar: launcher + utils + plugin-invoker-{shared,maven,gradle,polyglot}.
     -->
     <groupId>org.springframework.rewrite</groupId>
     <artifactId>spring-rewrite-commons-launcher</artifactId>
@@ -29,6 +30,8 @@
         <jaxb-api.version>2.3.1</jaxb-api.version>
         <plexus-sec-dispatcher.version>2.0</plexus-sec-dispatcher.version>
         <plexus-cipher.version>2.0</plexus-cipher.version>
+        <gradle-tooling-api.version>8.4</gradle-tooling-api.version>
+        <jgit.version>5.13.3.202401111512-r</jgit.version>
     </properties>
 
     <dependencies>
@@ -114,14 +117,28 @@
             </exclusions>
         </dependency>
 
-        <!-- maven-invoker is used by the (consolidated) plugin-invoker-maven sources -->
+        <!-- maven plugin invoker -->
         <dependency>
             <groupId>org.apache.maven.shared</groupId>
             <artifactId>maven-invoker</artifactId>
             <version>3.2.0</version>
         </dependency>
 
-        <!-- Lombok used only at compile time (decompiled sources expand annotations away) -->
+        <!-- gradle plugin invoker -->
+        <dependency>
+            <groupId>org.gradle</groupId>
+            <artifactId>gradle-tooling-api</artifactId>
+            <version>${gradle-tooling-api.version}</version>
+        </dependency>
+        <!-- the Gradle Tooling API uses SLF4J; Spring already brings logback -->
+
+        <!-- utils/GitHub.java -->
+        <dependency>
+            <groupId>org.eclipse.jgit</groupId>
+            <artifactId>org.eclipse.jgit</artifactId>
+            <version>${jgit.version}</version>
+        </dependency>
+
         <dependency>
             <groupId>org.projectlombok</groupId>
             <artifactId>lombok</artifactId>
@@ -136,21 +153,4 @@
             <scope>provided</scope>
         </dependency>
     </dependencies>
-
-    <build>
-        <plugins>
-            <!-- The decompiled sources lose the original license headers; the upstream
-                 project ships under Apache License 2.0 (Moderne, Inc.). The original
-                 GAV (org.springframework.rewrite:spring-rewrite-commons-launcher:0.1.0)
-                 and the upstream license remain unchanged. We skip the local header
-                 check for this internal copy. -->
-            <plugin>
-                <groupId>com.mycila</groupId>
-                <artifactId>license-maven-plugin</artifactId>
-                <configuration>
-                    <skip>true</skip>
-                </configuration>
-            </plugin>
-        </plugins>
-    </build>
 </project>
