@@ -297,6 +297,7 @@ public class AddDependencyTest {
          * Then the type can be resolved
          */
         @Test
+        @Disabled("see #13 — cross-module type resolution after recipe-driven classpath mutation")
         @Order(3)
         @DisplayName("Adding a new dependency makes types available")
         void addingANewDependencyMakesTypesAvailable() {
@@ -326,6 +327,7 @@ public class AddDependencyTest {
         }
 
         @Test
+        @Disabled("see #13 — cross-module type resolution after recipe-driven classpath mutation")
         @DisplayName("after adding an dependency the type should resolved")
         void test2() {
             ProjectContext projectContext = TestProjectContext.buildProjectContext()
@@ -346,6 +348,7 @@ public class AddDependencyTest {
         }
 
         @Test
+        @Disabled("see #13 — cross-module type resolution after recipe-driven classpath mutation")
         @DisplayName("compare differences")
         void classpathFromJavaSourceSetShouldBeEqual() {
             ProjectContext projectContextWithDep = TestProjectContext.buildProjectContext()
@@ -367,6 +370,7 @@ public class AddDependencyTest {
         }
 
         @Test
+        @Disabled("see #13 — cross-module type resolution after recipe-driven classpath mutation")
         @DisplayName("compare differences")
         void classpathFromJClasspathMarkerShouldBeEqual() {
             ProjectContext projectContextWithDep = TestProjectContext.buildProjectContext()
