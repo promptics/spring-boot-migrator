@@ -36,6 +36,12 @@
             <groupId>org.springframework.rewrite</groupId>
             <artifactId>spring-rewrite-commons-launcher</artifactId>
             <version>0.1.0-SNAPSHOT</version>
+            <exclusions>
+                <exclusion>
+                    <groupId>org.springframework.rewrite</groupId>
+                    <artifactId>spring-rewrite-commons-plugin-invoker-gradle</artifactId>
+                </exclusion>
+            </exclusions>
         </dependency>
         <dependency>
             <groupId>org.openrewrite</groupId>

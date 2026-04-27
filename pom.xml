@@ -259,6 +259,12 @@
             <groupId>org.springframework.rewrite</groupId>
             <artifactId>spring-rewrite-commons-launcher</artifactId>
             <version>${spring-rewrite-commons-launcher.version}</version>
+            <exclusions>
+                <exclusion>
+                    <groupId>org.springframework.rewrite</groupId>
+                    <artifactId>spring-rewrite-commons-plugin-invoker-gradle</artifactId>
+                </exclusion>
+            </exclusions>
         </dependency>
     </dependencies>
     <build>
