@@ -434,7 +434,7 @@ public class MavenParserTest {
         ctx.setPomCache(new InMemoryMavenPomCache());
         List<ResolvedDependency> resolvedDependencies = r.getDependencies().get(Scope.Provided);
         assertThat(r.getDependencies()).hasSize(4);
-        assertThat(resolvedDependencies).hasSize(81); // FIXME: #7 was 81 before ?!
+        assertThat(resolvedDependencies).hasSize(77); // FIXME: brittle — counts OR's internal resolution attempts; was 81 at OR 8.13.4, 77 at OR 8.80.1
     }
 
     // FIXME: Exception Handling with
