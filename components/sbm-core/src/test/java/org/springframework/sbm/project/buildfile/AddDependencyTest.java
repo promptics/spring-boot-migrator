@@ -127,7 +127,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 //        RewriteParserConfiguration.class,
 //        SpringBeanProvider.ComponentScanConfiguration.class
 
-})
+}, properties = "spring.main.allow-bean-definition-overriding=true")
 public class AddDependencyTest {
 
     @Autowired
