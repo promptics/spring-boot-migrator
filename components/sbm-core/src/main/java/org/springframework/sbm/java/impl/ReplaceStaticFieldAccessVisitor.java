@@ -17,13 +17,12 @@ package org.springframework.sbm.java.impl;
 
 import org.openrewrite.ExecutionContext;
 import org.openrewrite.java.JavaIsoVisitor;
+import org.openrewrite.java.JavaParser;
+import org.openrewrite.java.JavaTemplate;
 import org.openrewrite.java.tree.*;
 import org.openrewrite.java.tree.J.FieldAccess;
-import org.openrewrite.marker.Markers;
 
-import java.util.List;
 import java.util.Optional;
-import java.util.UUID;
 
 public class ReplaceStaticFieldAccessVisitor extends JavaIsoVisitor<ExecutionContext> {
 
@@ -54,37 +53,26 @@ public class ReplaceStaticFieldAccessVisitor extends JavaIsoVisitor<ExecutionCon
                     );
 
                     if (newStaticFieldAccess.isPresent() && differ(newStaticFieldAccess.get(), fieldAccess)) {
-                        String fqClassName = newStaticFieldAccess.get().getFqClassName();
-                        JavaType newClassType = JavaType.buildType(fqClassName);
-                        if(!JavaType.FullyQualified.class.isInstance(newClassType)) {
-                            throw new IllegalArgumentException("newClassType cannot be casted to JavaType.FullyQualified.");
-                        }
-                        JavaType.FullyQualified fullyQualified = (JavaType.FullyQualified) newClassType;
-                        J.Identifier ident = new J.Identifier(UUID.randomUUID(), Space.EMPTY, Markers.EMPTY, java.util.Collections.emptyList(), fullyQualified.getClassName(), newClassType, null); // FIXME: #497 correct?!
-
+                        String newFqClassName = newStaticFieldAccess.get().getFqClassName();
+                        String newSimpleClassName = newFqClassName.substring(newFqClassName.lastIndexOf('.') + 1);
                         String newFieldName = newStaticFieldAccess.get().getField();
 
-                        J.Identifier identifier = new J.Identifier(
-                                UUID.randomUUID(),
-                                Space.EMPTY,
-                                Markers.EMPTY,
-                                java.util.Collections.emptyList(),
-                                newFieldName,
-                                newClassType,
-                                null
-                        );
-                        FieldAccess af = new J.FieldAccess(
-                                UUID.randomUUID(),
-                                Space.build(" ", List.of()),
-                                Markers.EMPTY,
-                                ident,
-                                JLeftPadded.build(identifier),
-                                null // FIXME: #497 correct?!
-                        );
-
                         maybeRemoveImport(currentTargetClassType);
-                        maybeAddImport(fqClassName);
-                        return af;
+                        maybeAddImport(newFqClassName);
+
+                        // Synthetic stub gives JavaParser the new class so the produced AST has
+                        // a resolved JavaType for the field reference, which is required for
+                        // maybeAddImport to actually emit the import on the resulting CU.
+                        String packageName = newFqClassName.substring(0, newFqClassName.lastIndexOf('.'));
+                        String stub = "package " + packageName + "; public class " + newSimpleClassName +
+                                " { public static final Object " + newFieldName + " = null; }";
+
+                        return JavaTemplate.builder(newSimpleClassName + "." + newFieldName)
+                                .imports(newFqClassName)
+                                .contextSensitive()
+                                .javaParser(JavaParser.fromJavaVersion().dependsOn(stub))
+                                .build()
+                                .apply(getCursor(), fieldAccess.getCoordinates().replace());
                     }
                 }
             }
