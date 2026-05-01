@@ -57,7 +57,7 @@ public class RemoveMavenPlugin extends Recipe {
         @Override
         public Xml visitTag(Xml.Tag tag, ExecutionContext ctx) {
             if (PLUGIN_MATCHER.matches(getCursor()) && hasGroupAndArtifact(groupId, artifactId)) {
-                doAfterVisit(new RemoveContentVisitor<>(tag, true));
+                doAfterVisit(new RemoveContentVisitor<ExecutionContext>(tag, true, false));
             }
             return super.visitTag(tag, ctx);
         }

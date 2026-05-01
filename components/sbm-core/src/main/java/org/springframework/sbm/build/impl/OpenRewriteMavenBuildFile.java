@@ -762,7 +762,7 @@ public class OpenRewriteMavenBuildFile extends RewriteSourceFileHolder<Xml.Docum
 
     @Override
     public void setPackaging(String packaging) {
-        ChangePackaging changePackaging = new ChangePackaging(getGroupId(), getArtifactId(), packaging);
+        ChangePackaging changePackaging = new ChangePackaging(getGroupId(), getArtifactId(), packaging, null);
         apply(changePackaging);
     }
 
@@ -806,7 +806,7 @@ public class OpenRewriteMavenBuildFile extends RewriteSourceFileHolder<Xml.Docum
                 throw new IllegalStateException("Trying to upgrade parent version in '%s' failed, the parent does not exist and was null".formatted(getSourcePath()));
             }
             apply(
-                    new UpgradeParentVersion(parent.getGroupId(), parent.getArtifactId(), version, null, List.of())
+                    new UpgradeParentVersion(parent.getGroupId(), parent.getArtifactId(), version, null, null)
             );
         }
     }

@@ -52,9 +52,8 @@ public class RewriteMavenParser implements Parser {
     @NotNull
     private void initMavenParser(ExecutionContext executionContext, Path projectRoot) {
         MavenParser.Builder builder = MavenParser.builder();
-        if (projectRoot != null && projectRoot.resolve(".mvn/maven.config").toFile().exists()) {
-            builder.mavenConfig(projectRoot.resolve(".mvn/maven.config"));
-        }
+        // .mavenConfig(...) removed in OR 8.x; if .mvn/maven.config support is needed,
+        // parse the file ourselves and call .property(...) / .activeProfiles(...) here.
         this.parser = builder.build();
 //        if(executionContext.getMavenProfiles().length > 0) {
 //            builder.activeProfiles(executionContext.getMavenProfiles());

@@ -47,8 +47,8 @@ public class RewriteMavenParserFactory {
         );
         // rewriteExecutionContext.getMavenPomCache();
 
-        MavenParser.Builder mavenParserBuilder = MavenParser.builder()
-                .mavenConfig(absoluteProjectDir.resolve(".mvn/maven.config"));
+        MavenParser.Builder mavenParserBuilder = MavenParser.builder();
+        // .mavenConfig(...) removed in OR 8.x; see RewriteMavenParser for the same drop.
 
 //        MavenProjectParser mavenProjectParser = new MavenProjectParser(
 //                resourceParser,

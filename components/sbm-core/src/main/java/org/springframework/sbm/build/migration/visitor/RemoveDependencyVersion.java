@@ -85,7 +85,7 @@ public class RemoveDependencyVersion extends Recipe {
                     if (checkScope == null ||
                             checkScope.equals(dependency.getRequested().getScope()) ||
                             (dependency.getRequested().getScope() != null && Scope.fromName(dependency.getRequested().getScope()).isInClasspathOf(checkScope))) {
-                        doAfterVisit(new RemoveContentVisitor<>(versionTag.get(), true));
+                        doAfterVisit(new RemoveContentVisitor<ExecutionContext>(versionTag.get(), true, false));
                     }
                 }
             }

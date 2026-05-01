@@ -60,7 +60,7 @@ public class ReplaceStaticFieldAccessVisitor extends JavaIsoVisitor<ExecutionCon
                             throw new IllegalArgumentException("newClassType cannot be casted to JavaType.FullyQualified.");
                         }
                         JavaType.FullyQualified fullyQualified = (JavaType.FullyQualified) newClassType;
-                        J.Identifier ident = new J.Identifier(UUID.randomUUID(), Space.EMPTY, Markers.EMPTY, fullyQualified.getClassName(), newClassType, null); // FIXME: #497 correct?!
+                        J.Identifier ident = new J.Identifier(UUID.randomUUID(), Space.EMPTY, Markers.EMPTY, java.util.Collections.emptyList(), fullyQualified.getClassName(), newClassType, null); // FIXME: #497 correct?!
 
                         String newFieldName = newStaticFieldAccess.get().getField();
 
@@ -68,6 +68,7 @@ public class ReplaceStaticFieldAccessVisitor extends JavaIsoVisitor<ExecutionCon
                                 UUID.randomUUID(),
                                 Space.EMPTY,
                                 Markers.EMPTY,
+                                java.util.Collections.emptyList(),
                                 newFieldName,
                                 newClassType,
                                 null
