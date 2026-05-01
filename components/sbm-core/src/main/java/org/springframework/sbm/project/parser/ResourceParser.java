@@ -108,10 +108,13 @@ public class ResourceParser {
         parserAndParserInputMappings.put(plainTextParser, new ArrayList<>());
 
         parserInputs.forEach(r -> {
+            // OR 8.80.1's PlainTextParser.accept(...) is more restrictive than 8.13.4's,
+            // so it no longer matches arbitrary unknown extensions. Use it as the explicit
+            // fallback to preserve the prior contract: every input gets parsed by something.
             Parser parser = parserAndParserInputMappings.keySet().stream()
                     .filter(p -> p.accept(r))
                     .findFirst()
-                    .orElseThrow(() -> new RuntimeException("Could not find matching parser for " + r.getPath()));
+                    .orElse(plainTextParser);
 
             parserAndParserInputMappings.get(parser).add(r);
         });
