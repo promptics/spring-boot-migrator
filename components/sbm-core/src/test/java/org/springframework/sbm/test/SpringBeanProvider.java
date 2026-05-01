@@ -41,7 +41,16 @@ public class SpringBeanProvider {
     public static class ComponentScanConfiguration { }
 
     public static void run(ContextConsumer<AssertableApplicationContext> testcode, Class<?>... springBeans) {
-        ApplicationContextRunner contextRunner = new ApplicationContextRunner();
+        // Spring Boot 3.x defaults allow-bean-definition-overriding=false. Some SBM beans
+        // (e.g. mavenSettingsInitializer) get registered twice via component-scan + @Bean
+        // method; allow override at test level rather than fix every duplicate registration.
+        ApplicationContextRunner contextRunner = new ApplicationContextRunner()
+                .withInitializer(applicationContext -> {
+                    if (applicationContext.getBeanFactory()
+                            instanceof org.springframework.beans.factory.support.DefaultListableBeanFactory dlbf) {
+                        dlbf.setAllowBeanDefinitionOverriding(true);
+                    }
+                });
         for (Class<?> springBean : springBeans) {
             if(springBean.isAssignableFrom(Configurations.class)) {
                 Configurations c = Configurations.class.cast(springBean);
@@ -56,6 +65,12 @@ public class SpringBeanProvider {
     public static <T> void run(ContextConsumer<AnnotationConfigApplicationContext> testcode, Map<Class<?>, Object> replacedBeans, Class<?>... springBeans) {
         AnnotationConfigApplicationContext annotationConfigApplicationContext = new AnnotationConfigApplicationContext();
         ConfigurableListableBeanFactory beanFactory = annotationConfigApplicationContext.getBeanFactory();
+        // Spring Boot 3.x defaults allow-bean-definition-overriding=false. SBM tests register
+        // some beans (e.g. mavenSettingsInitializer) twice (component-scan + @Bean method);
+        // allow override at test level rather than fix every duplicate registration.
+        if (beanFactory instanceof org.springframework.beans.factory.support.DefaultListableBeanFactory dlbf) {
+            dlbf.setAllowBeanDefinitionOverriding(true);
+        }
         beanFactory.addBeanPostProcessor(new BeanPostProcessor() {
             @Override
             public Object postProcessBeforeInitialization(Object bean, String beanName) throws BeansException {
