@@ -191,7 +191,10 @@ public class DependencyChangeHandler {
                     .map(SourceFile.class::cast)
                     .toList();
 
-            JavaSourceSet javaSourceSet = JavaSourceSet.build("main", compileClasspath, typeCache, true);
+            // OR 8.80.1: the 4-arg build(name, classpath, typeCache, boolean) overload throws
+            // UnsupportedOperationException. The 2-arg overload works for our use case (the
+            // javaParser above already owns the JavaTypeCache).
+            JavaSourceSet javaSourceSet = JavaSourceSet.build("main", compileClasspath);
 
             List<J.CompilationUnit> sourceFiles = main.stream().map(s -> {
                         List<Marker> newMarkers = new ArrayList<>();
