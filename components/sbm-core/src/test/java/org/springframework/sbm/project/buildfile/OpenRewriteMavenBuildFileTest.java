@@ -174,7 +174,12 @@ public class OpenRewriteMavenBuildFileTest {
                     .getBuildFile();
 
             buildFile.addDependency(Dependency.fromCoordinates("javax.validation:validation-api:2.0.1.Final"));
-            assertThat(buildFile.getDeclaredDependencies()).hasSize(2);
+            // OR 8.80.1's MavenParser dedupes <dependency> entries by GAV — adding a dep with the same
+            // GAV but different (default = compile) scope replaces the existing scope rather than producing
+            // a second <dependency> element. OR 8.13.4 produced 2 duplicate elements; that's invalid Maven
+            // anyway (Maven warns and only honours one). This test now asserts the corrected behavior.
+            assertThat(buildFile.getDeclaredDependencies()).hasSize(1);
+            assertThat(buildFile.getDeclaredDependencies().get(0).getScope()).isEqualTo("compile");
         }
 
         @Test
