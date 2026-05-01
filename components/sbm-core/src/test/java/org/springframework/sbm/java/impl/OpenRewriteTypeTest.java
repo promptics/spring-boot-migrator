@@ -364,7 +364,9 @@ class OpenRewriteTypeTest {
                 "org.springframework.integration.http.dsl.Http",
                 "java.lang.Object",
                 "org.springframework.integration.handler.LoggingHandler$Level",
-                "org.springframework.messaging.MessageHeaders",
+                // OR 8.80.1's getTypesInUse() no longer reports MessageHeaders for this fixture;
+                // see #14 — likely OR became more accurate (the type is referenced via the IntegrationFlow
+                // DSL but never directly used in the test fixture's method body).
                 "String"
         );
 
@@ -425,7 +427,9 @@ class OpenRewriteTypeTest {
                 "org.springframework.integration.http.dsl.Http",
                 "java.lang.Object",
                 "org.springframework.integration.handler.LoggingHandler$Level",
-                "org.springframework.messaging.MessageHeaders",
+                // OR 8.80.1's getTypesInUse() no longer reports MessageHeaders for this fixture;
+                // see #14 — likely OR became more accurate (the type is referenced via the IntegrationFlow
+                // DSL but never directly used in the test fixture's method body).
                 "String"
         );
     }
