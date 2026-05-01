@@ -218,7 +218,6 @@ public class AddDependencyTest {
          * Then the type can be resolved
          */
         @Test
-        @Disabled("see #13 — cross-module type resolution after recipe-driven classpath mutation")
         @Order(2)
         @DisplayName("Adding the dependency resolves the missing type")
         void addingTheDependencyResolvesTheMissingType() {

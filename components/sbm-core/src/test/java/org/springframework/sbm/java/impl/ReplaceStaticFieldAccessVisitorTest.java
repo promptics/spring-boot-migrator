@@ -23,7 +23,6 @@ import java.util.Optional;
 class ReplaceStaticFieldAccessVisitorTest {
 
     @Test
-    @org.junit.jupiter.api.Disabled("see #14 — visitor no longer triggers on static-import unqualified access at OR 8.80.1")
     void replaceMediaTypeConstant() {
 
         String given =

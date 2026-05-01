@@ -48,7 +48,6 @@ class AddMavenPluginTest {
     }
 
     @Test
-    @org.junit.jupiter.api.Disabled("see #15 — XML-writer whitespace fixture brittleness at OR 8.80.1")
     void addMavenPluginMinimalFields() {
         AddMavenPlugin sut = new AddMavenPlugin();
         OpenRewriteMavenPlugin plugin = OpenRewriteMavenPlugin.builder()
@@ -89,7 +88,6 @@ class AddMavenPluginTest {
     }
 
     @Test
-    @org.junit.jupiter.api.Disabled("see #15 — XML-writer whitespace fixture brittleness at OR 8.80.1")
     void addMavenPluginAllFields() {
         AddMavenPlugin sut = new AddMavenPlugin();
         OpenRewriteMavenPlugin plugin = OpenRewriteMavenPlugin.builder()

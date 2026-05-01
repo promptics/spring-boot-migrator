@@ -313,7 +313,6 @@ class OpenRewriteTypeTest {
     }
 
     @Test
-    @org.junit.jupiter.api.Disabled("see #14 — getTypesInUse() set contents differ at OR 8.80.1")
     void testAddMethod2(@TempDir Path tempDir) {
         String methodCode =
                 """
@@ -388,7 +387,6 @@ class OpenRewriteTypeTest {
     }
     
     @Test
-    @org.junit.jupiter.api.Disabled("see #14 — getTypesInUse() set contents differ at OR 8.80.1")
     @DisplayName("return type not containerd in typesInUse")
     void returnTypeNotContainedInTypesInUse() {
         String javaCode =
