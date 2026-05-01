@@ -123,8 +123,9 @@ public class ImportSpringXmlConfigXmlToJavaConfigurationActionTest {
                 "    http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context.xsd\">\n" + 
                 "</beans>";
 
+        // Note: do NOT pass Path.of(".") — TestProjectContext.build() walks-and-deletes
+        // the projectRoot. The default (target/dummy-test-path) is safe.
         ProjectContext ctx = TestProjectContext.buildProjectContext()
-            .withProjectRoot(Path.of("."))
             .withMavenRootBuildFileSource(
                 "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n" + 
                 "<project xmlns=\"http://maven.apache.org/POM/4.0.0\"\n" + 

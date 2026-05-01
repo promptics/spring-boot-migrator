@@ -40,8 +40,10 @@ class AddSpringBootApplicationPropertiesActionTest {
 
     @BeforeEach
     void beforeEach() {
-        projectContextBuilder = TestProjectContext.buildProjectContext()
-                .withProjectRoot(Path.of("."));
+        // Note: do NOT pass Path.of(".") — TestProjectContext.build() walks-and-deletes the
+        // projectRoot, so passing the cwd would wipe the entire module's source. The default
+        // projectRoot (target/dummy-test-path) is safe.
+        projectContextBuilder = TestProjectContext.buildProjectContext();
     }
 
     @Test

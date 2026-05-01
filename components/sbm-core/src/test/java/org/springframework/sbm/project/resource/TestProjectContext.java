@@ -601,7 +601,19 @@ public class TestProjectContext {
                                                                                     executionContext);
              */
 
-            // Writing to filesystem and parsing again changes the resource order
+            // Writing to filesystem and parsing again changes the resource order.
+            // Safety guard: refuse to walk-and-delete anything outside <cwd>/target/ or
+            // system tmp. Without this, tests that pass projectRoot=Path.of(".") wipe the
+            // entire module's source tree (target/, src/, pom.xml — everything).
+            String prStr = projectRoot.toAbsolutePath().normalize().toString();
+            String tmpStr = Path.of(System.getProperty("java.io.tmpdir")).toAbsolutePath().normalize().toString();
+            String cwdTarget = Path.of("").toAbsolutePath().normalize().resolve("target").toString();
+            if (!prStr.startsWith(cwdTarget) && !prStr.startsWith(tmpStr)) {
+                throw new IllegalStateException(
+                        "TestProjectContext refusing to delete projectRoot outside <cwd>/target/ or system tmp. " +
+                        "projectRoot=" + prStr + ". Most likely cause: a test calls .withProjectRoot(Path.of(\".\")) or " +
+                        "similar; replace with the default (target/dummy-test-path) or a system tmp dir.");
+            }
             try {
                 Files.walk(projectRoot)
                         .sorted(Comparator.reverseOrder())

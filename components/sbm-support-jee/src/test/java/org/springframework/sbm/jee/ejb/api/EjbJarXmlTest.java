@@ -180,8 +180,9 @@ class EjbJarXmlTest {
 
         JeeEjbJarXmlProjectResourceRegistrar sut = new JeeEjbJarXmlProjectResourceRegistrar();
 
+        // Note: do NOT pass Path.of(".") — TestProjectContext.build() walks-and-deletes
+        // the projectRoot. The default (target/dummy-test-path) is safe.
         ProjectContext projectContext = TestProjectContext.buildProjectContext()
-                .withProjectRoot(Path.of(".").toAbsolutePath())
                 .addRegistrar(new JeeEjbJarXmlProjectResourceRegistrar())
                 .withProjectResource(Path.of("./src/main/resources/META-INF/ejb-jar.xml"), ejbJarXmlContent)
                 .build();
