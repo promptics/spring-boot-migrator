@@ -56,8 +56,8 @@
         <module>components/test-helper</module>
         <module>components/recipe-test-support</module>
         <module>components/sbm-support-boot</module>
-        <!-- Activate one at a time. Next up:
         <module>components/sbm-support-jee</module>
+        <!-- Activate one at a time. Next up:
         <module>components/sbm-support-weblogic</module>
         <module>components/sbm-recipes-jee-to-boot</module>
         <module>components/sbm-recipes-spring-cloud</module>
