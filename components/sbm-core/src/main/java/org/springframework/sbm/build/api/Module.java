@@ -156,9 +156,12 @@ public class Module {
     public <T> T search(ProjectResourceFinder<T> finder) {
         List<RewriteSourceFileHolder<? extends SourceFile>> resources = getModuleResources();
         if(!resources.isEmpty()) {
-            Path baseDir = resources.get(0).getAbsoluteProjectDir();
-            List<SourceFile> sourceFiles = getModuleResources().stream().map(RewriteSourceFileHolder::getSourceFile).map(SourceFile.class::cast).toList();
-            ProjectResourceSet filteredProjectResourceSet = projectResourceSetFactory.create(baseDir, sourceFiles);
+            // Preserve the type-specific wrapping (e.g. PersistenceXml, EjbJarXml) that
+            // ProjectContextFactory.applyProjectResourceWrappers added to the resource
+            // set. Going via projectResourceSetFactory.create(baseDir, sourceFiles)
+            // would round-trip through getSourceFile() and re-wrap as plain
+            // RewriteSourceFileHolder<Xml.Document>, breaking GenericTypeFinder<T>.
+            ProjectResourceSet filteredProjectResourceSet = projectResourceSetFactory.createFromSourceFileHolders(resources);
             return finder.apply(filteredProjectResourceSet);
         } else {
             return null;
