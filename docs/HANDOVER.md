@@ -4,8 +4,9 @@
 
 Issue #5 (master tracker): upgrade SBM to OR 8.80.1, then Boot 4. Strategy:
 **OR upgrade first, modules activated one-at-a-time, each green before moving on.
-Don't push to fork yet — eventually one big PR upstream.** Tests must pass, not
-be disabled.
+Push module activations onto PR #16 incrementally (current strategy — switched
+from "local-only until done" once the user confirmed the per-module flow).**
+Tests must pass, not be disabled.
 
 User (`fabapp2`) is no longer a maintainer of upstream
 `spring-projects-experimental/spring-boot-migrator`. Working in fork
@@ -14,13 +15,13 @@ User (`fabapp2`) is no longer a maintainer of upstream
 ## Current branch
 
 ```
-SBM:                    claude/issue-6-7/integrate-rewrite-commons
+SBM:                    claude/issue-6-7/integrate-rewrite-commons    (PR #16, draft)
                         (off upstream/revamp/integrate-rewrite-commons-extract-jax-rs)
 spring-rewrite-commons: bump-or-8.80.1 (in /tmp/src/spring-rewrite-commons-launcher)
                         promptics fork, OR 8.80.1, Boot 3.1.x baseline
 ```
 
-## Active reactor (4 modules, all green)
+## Active reactor (5 modules, all green)
 
 ```
 spring-boot-migrator  (root)
@@ -29,6 +30,8 @@ sbm-openrewrite        — 54 tests, all green
 sbm-core              — 326 tests, 14 skipped (#13 cross-module classpath, deferred)
 recipe-test-support
 sbm-support-boot      — 81 tests, all green ✅
+sbm-support-jee       — 10 tests, 5 pre-existing @Disabled (issue #416, ejb-jar
+                        schema TODO) — clean activation, no new failures ✅
 ```
 
 The 2 sbm-core errors that surface in this sandbox (`GitSupportTest.addAllAndCommit`,
@@ -40,8 +43,7 @@ or run on a host without that config.
 ## Inactive modules (commented out in root pom — activate one at a time)
 
 ```
-sbm-support-jee
-sbm-support-weblogic
+sbm-support-weblogic   ← next
 sbm-recipes-jee-to-boot
 sbm-recipes-spring-cloud
 sbm-recipes-spring-framework
@@ -66,6 +68,8 @@ rewrite-recipe-bom:       not yet adopted (#7)
 ## Commits on this branch (newest first)
 
 ```
+8d319481 build: re-activate components/sbm-support-jee in the reactor
+6a4f4b29 docs: handover note for OR 8.80.1 migration / sbm-support-boot green
 4478533a test(sbm-support-boot): restore spring-boot-starter-parent fixture in multiModuleTest
 ca319856 test(sbm-support-boot): fix 3 multi-module compiler-plugin test cases for OR 8.80.1
 a6010eb1 fix(sbm-core): skip sibling-module deps when resolving classpath
@@ -97,21 +101,25 @@ a5484342 fix(test): drop @ExpectedToFail from itResolvesVariableFromMavenConfig
 ## spring-rewrite-commons fork patches (`/tmp/src/spring-rewrite-commons-launcher`, branch `bump-or-8.80.1`)
 
 ```
-1812d70 fix(maven): detect multi-module via <modules> when packaging is inherited
-2f0614f parser: tolerate empty/blank-project resources
+f5b4e40 fix(maven): detect multi-module via <modules> when packaging is inherited   ← re-derived
+d481cdf parser: tolerate empty/blank-project resources                              ← re-derived
 1a29dcb fix(or): RewriteRecipeDiscovery activation guard works with leaf recipes
 fedfaf4 fix(test): adapt 4 launcher/polyglot test assertions to OR/Maven contracts
 d3f3313 test(gradle): update brittle plugin-count literal 9 → 10 (not OR-related)
 ```
 
-These are **local-only** — the user pushed an earlier state to
-`promptics/spring-rewrite-commons` (`bump-or-8.80.1`) but `1812d70` and `2f0614f`
-have NOT been pushed yet. To rebuild and reinstall after edits:
+The two top commits replace the prior session's `1812d70` + `2f0614f` (lost
+when the sandbox was discarded — never reached `promptics/spring-rewrite-commons`).
+**Push from this sandbox is still blocked**: GitHub HTTPS push asks for a
+username and `GIT_TERMINAL_PROMPT=0` returns `could not read Username for 'https://github.com'`.
+No `GH_TOKEN`/`GITHUB_TOKEN`/`~/.git-credentials`/credential helper is configured.
+Push must come from a host with creds. To rebuild and reinstall after edits:
 
 ```bash
 cd /tmp/src/spring-rewrite-commons-launcher
 mvn spring-javaformat:apply -q   # if format check fails
-mvn install -DskipTests -q
+mvn install -pl spring-rewrite-commons-launcher -am -DskipTests -q
+                              # ↑ -pl/-am avoids pulling repo.gradle.org for plugin-invoker-gradle
 cd /home/user/spring-boot-migrator
 mvn -pl components/sbm-core -am install -DskipTests -Dspring-javaformat.skip=true -q
 ```
@@ -166,13 +174,25 @@ mvn -pl components/sbm-core -am install -DskipTests -Dspring-javaformat.skip=tru
     and skips child (Maven inheritance covers it). Assertion changed to expect
     `null` on child
 
+### sbm-support-jee specific
+
+- No production fixes needed. The two re-derived rewrite-commons fork patches
+  (`f5b4e40` multi-module detection, `d481cdf` empty-project tolerance) make
+  multi-module fixtures parse correctly, which is what previously broke this
+  module's tests. Activation was clean.
+
 ### spring-rewrite-commons fork (`/tmp/src/spring-rewrite-commons-launcher`)
 
-- **Empty/blank-project tolerance** (3 throw sites → warn + empty):
-  - `ProjectScanner.filterIgnoredResources`
-  - `MavenProjectFactory.create`
-  - `MavenProjectAnalyzer.getBuildProjects` (skip sort+map(0) on empty)
-  - `MavenBuildFileParser.parseBuildFiles` (replaced `Assert.notEmpty`)
+- **Empty/blank-project tolerance** (3 throw sites → warn + empty, plus pom):
+  - `ProjectScanner.filterIgnoredResources` (warn + empty list)
+  - `MavenProjectFactory.create` (added SLF4J logger; warn + `List.of()`)
+  - `MavenProjectAnalyzer.getBuildProjects` (short-circuit on empty before
+    `mavenProjectSorter.sort` and the `mavenProjects.get(0)` deref)
+  - `MavenBuildFileParser.parseBuildFiles` (replaced `Assert.notEmpty` with
+    `if-isEmpty → warn + List.of()`)
+  - `spring-rewrite-commons-launcher/pom.xml`: comment out the
+    `spring-rewrite-commons-plugin-invoker-gradle` dependency (sandbox can't
+    reach `repo.gradle.org` for `gradle-tooling-api:8.4`)
 - **Multi-module detection via `<modules>` when packaging is inherited**
   (`MavenProjectGraph.isMultiModuleProject`): `MavenXpp3Reader` doesn't resolve
   parent inheritance, so a pom inheriting `pom` packaging from
@@ -207,15 +227,16 @@ Plus 4 in `AddAnnotationAndThenDependency2Test` similarly deferred.
 
 ## Next module to activate (per one-at-a-time strategy)
 
-`sbm-support-jee` is next. To activate:
+`sbm-support-weblogic` is next. To activate:
 
-1. Edit `pom.xml` — uncomment `<module>components/sbm-support-jee</module>`
-2. `mvn -pl components/sbm-support-jee -am install -DskipTests -Dspring-javaformat.skip=true`
-3. `mvn -pl components/sbm-support-jee test -Dspring-javaformat.skip=true`
+1. Edit `pom.xml` — uncomment `<module>components/sbm-support-weblogic</module>`
+2. `mvn -pl components/sbm-support-weblogic -am install -DskipTests -Dspring-javaformat.skip=true`
+3. `mvn -pl components/sbm-support-weblogic test -Dspring-javaformat.skip=true`
 4. Triage failures one-by-one, prefer fixing root cause over disabling
 
-After each module activation, commit with `build: re-activate components/sbm-support-jee
-in the reactor` and follow up with module-specific fix commits.
+After each module activation, commit with `build: re-activate components/<module>
+in the reactor` and follow up with module-specific fix commits, then push to
+PR #16.
 
 ## Useful commands
 
@@ -226,23 +247,27 @@ mvn test -fae -Dspring-javaformat.skip=true
 # Single-module
 mvn -pl components/sbm-support-boot test -Dspring-javaformat.skip=true
 
-# Pre-warm m2 for Boot multi-module tests (one-time, brings in spring-boot-starter-parent BOM tree)
+# Pre-warm m2 for Boot multi-module tests (one-time, brings in
+# spring-boot-starter-parent BOM tree). Use 2.7.1 (matches
+# HasSpringBootStarterParentTest fixture) plus 2.7.5 if needed:
 mkdir -p /tmp/boot-prewarm && cat > /tmp/boot-prewarm/pom.xml <<'EOF'
 <project xmlns="http://maven.apache.org/POM/4.0.0">
     <modelVersion>4.0.0</modelVersion>
     <parent>
       <groupId>org.springframework.boot</groupId>
       <artifactId>spring-boot-starter-parent</artifactId>
-      <version>2.7.5</version>
+      <version>2.7.1</version>
     </parent>
     <groupId>com.example</groupId><artifactId>prewarm</artifactId><version>1.0</version>
 </project>
 EOF
 mvn -f /tmp/boot-prewarm/pom.xml help:effective-pom -q
 
-# Rebuild rewrite-commons fork after edits
+# Rebuild rewrite-commons fork after edits (build only the launcher tree —
+# avoids the gradle-tooling-api download for plugin-invoker-gradle)
 cd /tmp/src/spring-rewrite-commons-launcher
-mvn spring-javaformat:apply -q && mvn install -DskipTests -q
+mvn spring-javaformat:apply -q
+mvn install -pl spring-rewrite-commons-launcher -am -DskipTests -q
 cd /home/user/spring-boot-migrator
 mvn -pl components/sbm-core,components/recipe-test-support,components/sbm-openrewrite -am install -DskipTests -Dspring-javaformat.skip=true -q
 ```
@@ -251,8 +276,14 @@ mvn -pl components/sbm-core,components/recipe-test-support,components/sbm-openre
 
 - `gpg.format=ssh` in `/root/.gitconfig` will reject jgit operations. For
   rewrite-commons commits use `git -c gpg.format=openpgp -c commit.gpgsign=false commit ...`
-- spring-rewrite-commons-plugin-invoker-gradle is excluded in pom.xml
-  (`<exclusions>`) — sandbox can't reach `repo.gradle.org`
-- User explicitly does NOT want to push to origin yet — work locally
+- `spring-rewrite-commons-plugin-invoker-gradle` is excluded in
+  `spring-rewrite-commons-launcher/pom.xml` (commented out) — sandbox can't
+  reach `repo.gradle.org`
+- SBM pushes go to `origin` on `claude/issue-6-7/integrate-rewrite-commons` (PR
+  #16). Push each per-module activation as you go (the user changed strategy
+  once the per-module flow worked).
+- rewrite-commons fork pushes are blocked from this sandbox (no GitHub creds)
+  — re-derived `f5b4e40` + `d481cdf` are local-only until pushed from a host
+  with creds, like the previous session.
 - User explicitly does NOT want failing tests `@Disabled` as a shortcut — fix
-  the root cause first
+  the root cause first.
