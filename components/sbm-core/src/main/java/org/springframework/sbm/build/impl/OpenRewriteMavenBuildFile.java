@@ -495,11 +495,14 @@ public class OpenRewriteMavenBuildFile extends RewriteSourceFileHolder<Xml.Docum
      * Does not updateClasspathRegistry
      */
     private void excludeDependenciesInner(List<Dependency> exclusions) {
+        // OR 8.80.1's Recipe.getRecipeList() returns an immutable list, so we
+        // can no longer chain ExcludeDependency instances by mutating that
+        // list. Apply each ExcludeDependency separately and refresh once at
+        // the end.
         if (!exclusions.isEmpty()) {
-            Dependency excludedDependency = exclusions.get(0);
-            ExcludeDependency excludeDependency = new ExcludeDependency(excludedDependency.getGroupId(), excludedDependency.getArtifactId(), excludedDependency.getScope());
-            exclusions.stream().skip(1).forEach(d -> excludeDependency.getRecipeList().add(new ExcludeDependency(d.getGroupId(), d.getArtifactId(), d.getScope())));
-            apply(excludeDependency);
+            exclusions.stream()
+                    .map(d -> new ExcludeDependency(d.getGroupId(), d.getArtifactId(), d.getScope()))
+                    .forEach(this::apply);
             refreshPomModel();
         }
     }
