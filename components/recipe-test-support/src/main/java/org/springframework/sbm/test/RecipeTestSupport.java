@@ -16,6 +16,8 @@
 package org.springframework.sbm.test;
 
 import jakarta.validation.Validator;
+import org.openrewrite.maven.cache.LocalMavenArtifactCache;
+import org.openrewrite.maven.cache.MavenArtifactCache;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Primary;
@@ -23,6 +25,7 @@ import org.springframework.core.io.Resource;
 import org.springframework.core.io.ResourceLoader;
 import org.springframework.rewrite.boot.autoconfigure.ScopeConfiguration;
 import org.springframework.rewrite.parser.maven.MavenSettingsInitializer;
+import org.springframework.rewrite.parser.maven.RewriteMavenArtifactDownloader;
 import org.springframework.rewrite.resource.RewriteMigrationResultMerger;
 import org.springframework.rewrite.resource.RewriteSourceFileWrapper;
 import org.springframework.sbm.build.impl.MavenBuildFileRefactoringFactory;
@@ -80,8 +83,22 @@ public class RecipeTestSupport {
             MavenSettingsInitializer.class,
             MavenBuildFileRefactoringFactory.class,
             ProjectResourceSetHolder.class,
-            ScopeConfiguration.class
+            ScopeConfiguration.class,
+            ArtifactDownloaderTestConfiguration.class
     };
+
+    @Configuration
+    static class ArtifactDownloaderTestConfiguration {
+        // AddMinimalPomXml @Autowires RewriteMavenArtifactDownloader. Recipe tests
+        // only verify wiring (assertThatRecipeHasActions) and never call apply(),
+        // so a stub backed by LocalMavenArtifactCache + no-op error consumer is fine.
+        @Bean
+        RewriteMavenArtifactDownloader artifactDownloader() {
+            java.nio.file.Path cacheDir = java.nio.file.Paths.get(System.getProperty("user.home"), ".m2", "repository");
+            MavenArtifactCache cache = new LocalMavenArtifactCache(cacheDir);
+            return new RewriteMavenArtifactDownloader(cache, null, t -> {});
+        }
+    }
 
 
     /**

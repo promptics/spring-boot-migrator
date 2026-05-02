@@ -16,6 +16,7 @@
 package org.springframework.sbm.test;
 
 import org.apache.commons.io.FileUtils;
+import org.springframework.rewrite.parser.SpringRewriteProperties;
 import org.springframework.sbm.engine.commands.ApplicableRecipeListCommand;
 import org.springframework.sbm.engine.commands.ApplyCommand;
 import org.springframework.sbm.engine.commands.ScanCommand;
@@ -34,6 +35,7 @@ import java.io.File;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.List;
+import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -96,8 +98,17 @@ public class RecipeIntegrationTestSupport {
                         configuration.setDirectoryForTemplateLoading(new File("./src/main/resources/templates"));
                     }
 
+                    // SBM copies test fixtures to ./target/testcode/<name>/. SpringRewriteProperties
+                    // defaults ignore **/target/** so the scanner returns nothing. Override here so
+                    // fixtures rooted under target/ get scanned.
+                    SpringRewriteProperties springRewriteProperties = ctx.getBean(SpringRewriteProperties.class);
+                    springRewriteProperties.setIgnoredPathPatterns(Set.of(
+                            "**/.git/**", "**/.idea/**", "**/.mvn/**", "**/.gitignore",
+                            "**/build/**", "**/.gradle/**", "**/node_modules/**",
+                            "**/out/**", "**/lib/**", "**/*.iml"));
+
                     ScanCommand scanCommand = ctx.getBean(ScanCommand.class);
-                    
+
                     SbmApplicationProperties sbmApplicationProperties = ctx.getBean(SbmApplicationProperties.class);
                     sbmApplicationProperties.setDefaultBasePackage("org.springframework.sbm");
                     
