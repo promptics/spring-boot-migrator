@@ -152,9 +152,9 @@ class MigrateEjbDeploymentDescriptorTest {
                 "import javax.ejb.Remote;\n" +
                 "import javax.ejb.Stateless;\n" +
                 "\n" +
-                "@Stateless(name = \"" + EJB_WITH_REMOTE_INTERFACE_NAME + "\")\n" +
                 "@Remote(" + REMOTE_EJB_INTERFACE + ".class)\n" +
-                "public class RemoteInterfaceView implements RemoteInterface {}";
+                "@Stateless(name = \"" + EJB_WITH_REMOTE_INTERFACE_NAME + "\")\n" +
+                "public class RemoteInterfaceView implements RemoteInterface{}";
 
         String deploymentDescriptorXml = "<ejb-jar xmlns=\"http://xmlns.jcp.org/xml/ns/javaee\"\n" +
                 "      xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\"\n" +
@@ -202,9 +202,9 @@ class MigrateEjbDeploymentDescriptorTest {
                 "import javax.ejb.Local;\n" +
                 "import javax.ejb.Stateless;\n" +
                 "\n" +
-                "@Stateless(name = \"" + EJB_WITH_LOCAL_INTERFACE_NAME + "\")\n" +
                 "@Local(" + LOCAL_EJB_INTERFACE + ".class)\n" +
-                "public class LocalInterfaceView implements LocalInterface {}";
+                "@Stateless(name = \"" + EJB_WITH_LOCAL_INTERFACE_NAME + "\")\n" +
+                "public class LocalInterfaceView implements LocalInterface{}";
 
         String deploymentDescriptorXml = "<ejb-jar xmlns=\"http://xmlns.jcp.org/xml/ns/javaee\"\n" +
                 "      xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\"\n" +

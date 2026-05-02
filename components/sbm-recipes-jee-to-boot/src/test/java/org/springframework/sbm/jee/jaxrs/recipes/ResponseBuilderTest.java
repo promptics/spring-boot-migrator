@@ -63,7 +63,6 @@ public class ResponseBuilderTest {
 
         String expected = ""
                 + "import java.util.Set;\n"
-                + "\n"
                 + "import org.springframework.http.HttpMethod;\n"
                 + "import org.springframework.http.ResponseEntity;\n"
                 + "\n"
@@ -112,9 +111,8 @@ public class ResponseBuilderTest {
                 + "";
 
         String expected = ""
-                + "import org.springframework.http.ResponseEntity;\n"
-                + "\n"
                 + "import java.util.Date;\n"
+                + "import org.springframework.http.ResponseEntity;\n"
                 + "\n"
                 + "public class TestController {\n"
                 + "\n"
@@ -159,7 +157,6 @@ public class ResponseBuilderTest {
 
         String expected = ""
                 + "import java.util.Locale;\n"
-                + "\n"
                 + "import org.springframework.http.HttpHeaders;\n"
                 + "import org.springframework.http.ResponseEntity;\n"
                 + "\n"
@@ -207,9 +204,8 @@ public class ResponseBuilderTest {
                 + "";
 
         String expected = ""
-                + "import org.springframework.http.ResponseEntity;\n"
-                + "\n"
                 + "import java.util.Date;\n"
+                + "import org.springframework.http.ResponseEntity;\n"
                 + "\n"
                 + "public class TestController {\n"
                 + "\n"

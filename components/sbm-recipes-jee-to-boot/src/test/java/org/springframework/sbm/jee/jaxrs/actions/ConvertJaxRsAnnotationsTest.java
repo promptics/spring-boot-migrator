@@ -313,12 +313,11 @@ public class ConvertJaxRsAnnotationsTest {
         String expected =
                 "package com.example.jee.app;\n" +
                         "\n" +
+                        "import javax.ws.rs.PathParam;\n" +
+                        "import javax.ws.rs.core.MediaType;\n" +
                         "import org.springframework.web.bind.annotation.RequestMapping;\n" +
                         "import org.springframework.web.bind.annotation.RequestMethod;\n" +
                         "import org.springframework.web.bind.annotation.RestController;\n" +
-                        "\n" +
-                        "import javax.ws.rs.PathParam;\n" +
-                        "import javax.ws.rs.core.MediaType;\n" +
                         "\n" +
                         "@RestController\n" +
                         "@RequestMapping(value = \"/\")\n" +

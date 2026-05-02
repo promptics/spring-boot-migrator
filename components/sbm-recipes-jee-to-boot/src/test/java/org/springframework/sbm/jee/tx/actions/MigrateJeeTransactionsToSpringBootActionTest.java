@@ -52,28 +52,27 @@ class MigrateJeeTransactionsToSpringBootActionTest {
                 "import org.springframework.transaction.annotation.Propagation;\n" +
                         "import org.springframework.transaction.annotation.Transactional;\n" +
                         "\n" +
-                        "\n" +
                         "@Transactional(propagation = Propagation.REQUIRES_NEW)\n" +
                         "public class TransactionalService {\n" +
                         "   public void requiresNewFromType() {}\n" +
                         "\n" +
-                        "    @Transactional(propagation = Propagation.NOT_SUPPORTED)\n" +
-                        "    public void notSupported() {}\n" +
+                        "   @Transactional(propagation = Propagation.NOT_SUPPORTED)\n" +
+                        "   public void notSupported() {}\n" +
                         "\n" +
-                        "    @Transactional(propagation = Propagation.MANDATORY)\n" +
-                        "    public void mandatory() {}\n" +
+                        "   @Transactional(propagation = Propagation.MANDATORY)\n" +
+                        "   public void mandatory() {}\n" +
                         "\n" +
-                        "    @Transactional(propagation = Propagation.REQUIRES_NEW)\n" +
-                        "    public void requiresNew() {}\n" +
+                        "   @Transactional(propagation = Propagation.REQUIRES_NEW)\n" +
+                        "   public void requiresNew() {}\n" +
                         "\n" +
-                        "    @Transactional(propagation = Propagation.REQUIRED)\n" +
-                        "    public void required() {}\n" +
+                        "   @Transactional(propagation = Propagation.REQUIRED)\n" +
+                        "   public void required() {}\n" +
                         "\n" +
-                        "    @Transactional(propagation = Propagation.NEVER)\n" +
-                        "    public void never() {}\n" +
+                        "   @Transactional(propagation = Propagation.NEVER)\n" +
+                        "   public void never() {}\n" +
                         "\n" +
-                        "    @Transactional(propagation = Propagation.SUPPORTS)\n" +
-                        "    public void supports() {}\n" +
+                        "   @Transactional(propagation = Propagation.SUPPORTS)\n" +
+                        "   public void supports() {}\n" +
                         "}";
 
         MigrateJeeTransactionsToSpringBootAction sut = new MigrateJeeTransactionsToSpringBootAction();

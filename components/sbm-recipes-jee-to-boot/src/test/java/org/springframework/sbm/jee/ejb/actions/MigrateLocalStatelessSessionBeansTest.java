@@ -38,7 +38,6 @@ class MigrateLocalStatelessSessionBeansTest {
         String expectedBean =
                 "import org.springframework.stereotype.Service;\n" +
                         "\n" +
-                        "\n" +
                         "@Service(\"DaSingleton\")\n" +
                         "public class LocalBeanAndLocalAnnotatedBean {}";
 

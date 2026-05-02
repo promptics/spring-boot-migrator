@@ -45,10 +45,9 @@ public class ReplaceMdbAnnotationWithJmsListenerTest {
                         + "";
 
         String expected =
-                "import org.springframework.jms.annotation.JmsListener;\n"
+                "import javax.jms.Message;\n"
+                        + "import org.springframework.jms.annotation.JmsListener;\n"
                         + "import org.springframework.stereotype.Component;\n"
-                        + "\n"
-                        + "import javax.jms.Message;\n"
                         + "\n"
                         + "@Component\n"
                         + "public class CargoHandledConsumer {\n"
