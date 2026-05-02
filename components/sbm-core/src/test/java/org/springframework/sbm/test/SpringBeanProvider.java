@@ -24,7 +24,6 @@ import org.springframework.boot.test.context.assertj.AssertableApplicationContex
 import org.springframework.boot.test.context.runner.ApplicationContextRunner;
 import org.springframework.boot.test.context.runner.ContextConsumer;
 import org.springframework.context.annotation.AnnotationConfigApplicationContext;
-import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.sbm.archfitfun.ExecutionScopeArchFitTestContext;
@@ -40,26 +39,20 @@ public class SpringBeanProvider {
 
     @Configuration
     @ComponentScan(value = {"org.springframework.sbm", "org.springframework.rewrite"}, excludeFilters = @ComponentScan.Filter(classes = TestConfiguration.class))
-    public static class ComponentScanConfiguration {
+    public static class ComponentScanConfiguration { }
 
-        // No-op fallback so UserInteractions-requiring @Configuration recipes
-        // (e.g. MigrateJaxWsRecipe) wire up in the default test context. Production
-        // code provides its own bean (e.g. SpringShellUserInteractions); this is
-        // only used when no other implementation is on the test classpath.
-        @Bean
-        public UserInteractions userInteractions() {
-            return new UserInteractions() {
-                @Override
-                public boolean askUserYesOrNo(String question) {
-                    return false;
-                }
+    private static UserInteractions defaultUserInteractions() {
+        return new UserInteractions() {
+            @Override
+            public boolean askUserYesOrNo(String question) {
+                return false;
+            }
 
-                @Override
-                public String askForInput(String question) {
-                    return "";
-                }
-            };
-        }
+            @Override
+            public String askForInput(String question) {
+                return "";
+            }
+        };
     }
 
     public static void run(ContextConsumer<AssertableApplicationContext> testcode, Class<?>... springBeans) {
@@ -114,6 +107,19 @@ public class SpringBeanProvider {
 
         Arrays.stream(springBeans).forEach(beanDef -> annotationConfigApplicationContext.register(beanDef));
         annotationConfigApplicationContext.registerBean(ComponentScanConfiguration.class);
+        // No-op fallback so UserInteractions-requiring @Configuration recipes
+        // (e.g. MigrateJaxWsRecipe) wire up in the default test context.
+        // Skip if any of the explicitly-passed springBeans already provides
+        // UserInteractions (e.g. RecipeIntegrationTestSupport passes
+        // UserInteractionsDummy.class) so we don't end up with two beans.
+        boolean hasExplicitUserInteractions = Arrays.stream(springBeans)
+                .anyMatch(UserInteractions.class::isAssignableFrom);
+        if (!hasExplicitUserInteractions) {
+            annotationConfigApplicationContext.registerBean(
+                    "userInteractions",
+                    UserInteractions.class,
+                    SpringBeanProvider::defaultUserInteractions);
+        }
 //        annotationConfigApplicationContext.scan("org.springframework.sbm", "org.springframework.freemarker");
         annotationConfigApplicationContext.refresh();
         if (new File("./src/main/resources/templates").exists()) {
