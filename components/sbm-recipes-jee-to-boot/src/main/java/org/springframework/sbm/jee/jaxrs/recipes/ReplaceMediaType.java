@@ -93,7 +93,13 @@ public class ReplaceMediaType extends Recipe {
 
     @Override
     public List<Recipe> getRecipeList() {
-        return List.of(
+        // The dynamic constant-renaming recipes (`recipes`) are built in the
+        // constructor from `mappings`. They were attached via getRecipeList().add(...)
+        // in OR 8.13.4, which became impossible once OR 8.80.1 made the list
+        // immutable. Combine them explicitly with the other static replacements
+        // here so APPLICATION_JSON_TYPE -> APPLICATION_JSON etc. still applies.
+        List<Recipe> all = new ArrayList<>(recipes);
+        all.addAll(List.of(
 
                 new ReplaceConstantWithAnotherConstant("javax.ws.rs.core.MediaType.CHARSET_PARAMETER", "org.springframework.util.MimeType.PARAM_CHARSET"),
                 new ReplaceConstantWithAnotherConstant("javax.ws.rs.core.MediaType.MEDIA_TYPE_WILDCARD", "org.springframework.util.MimeType.WILDCARD_TYPE"),
@@ -175,7 +181,8 @@ public class ReplaceMediaType extends Recipe {
 
                 // Type references
                 new ChangeType("javax.ws.rs.core.MediaType", "org.springframework.http.MediaType", false)
-        );
+        ));
+        return all;
     }
 
     @Override

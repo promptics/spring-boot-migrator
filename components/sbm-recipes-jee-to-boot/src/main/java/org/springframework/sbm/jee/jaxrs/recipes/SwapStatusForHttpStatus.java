@@ -22,6 +22,7 @@ import org.openrewrite.java.JavaTemplate;
 import org.springframework.sbm.java.migration.recipes.RewriteMethodInvocation;
 import org.springframework.sbm.java.migration.recipes.openrewrite.ReplaceConstantWithAnotherConstant;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -79,13 +80,19 @@ public class SwapStatusForHttpStatus extends Recipe {
         fieldsMapping.put("UNSUPPORTED_MEDIA_TYPE", "UNSUPPORTED_MEDIA_TYPE");
         fieldsMapping.put("USE_PROXY", "USE_PROXY");
 
-        fieldsMapping.forEach((key, value) -> new ReplaceConstantWithAnotherConstant("javax.ws.rs.core.Response$Status." + key, "org.springframework.http.HttpStatus." + value));
+        // Note: previous code did `fieldsMapping.forEach((k,v) -> new ReplaceConstantWithAnotherConstant(...))`
+        // which discarded the returned recipes. The mappings are turned into recipes in getRecipeList()
+        // below so they actually get applied.
     }
 
     @Override
     public List<Recipe> getRecipeList() {
+        List<Recipe> all = new ArrayList<>();
+        fieldsMapping.forEach((key, value) -> all.add(new ReplaceConstantWithAnotherConstant(
+                "javax.ws.rs.core.Response$Status." + key,
+                "org.springframework.http.HttpStatus." + value)));
 
-        return List.of(
+        all.addAll(List.of(
                 // Switch JAX-RS Family to Spring HttpStatus.Series
                 new SwapFamilyForSeries(),
 
@@ -114,7 +121,8 @@ public class SwapStatusForHttpStatus extends Recipe {
 
                 new ChangeType("javax.ws.rs.core.Response$StatusType", "org.springframework.http.HttpStatus", false),
                 new ChangeType("javax.ws.rs.core.Response$Status", "org.springframework.http.HttpStatus", false)
-        );
+        ));
+        return all;
     }
 
     @Override
