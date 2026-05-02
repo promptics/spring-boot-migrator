@@ -644,9 +644,15 @@ public class OpenRewriteMavenBuildFile extends RewriteSourceFileHolder<Xml.Docum
         Arrays.stream(Scope.values()).forEach(scope -> {
             List<ResolvedDependency> resolvedDependencies = getPom().getDependencies().get(scope);
             if(resolvedDependencies != null) {
+                // Sibling-module dependencies (e.g. org.example:module2 in a multi-module
+                // project) have no MavenRepository attached - they're never published.
+                // OR's MavenArtifactDownloader throws "Repository for dependency was null"
+                // for those. Skip them: they're not on the externally-resolvable classpath.
                 Set<Path> paths = resolvedDependencies
                         .stream()
+                        .filter(rd -> rd.getRepository() != null)
                         .map(rd -> rewriteMavenArtifactDownloader.downloadArtifact(rd))
+                        .filter(java.util.Objects::nonNull)
                         .collect(Collectors.toSet());
                 dependenciesMap.put(scope, paths);
             }
