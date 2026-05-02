@@ -36,6 +36,13 @@ import static org.springframework.sbm.java.migration.recipes.RewriteMethodInvoca
 
 public class ReplaceResponseEntityBuilder extends Recipe {
 
+    private final List<Recipe> recipeList = new ArrayList<>();
+
+    @Override
+    public List<Recipe> getRecipeList() {
+        return recipeList;
+    }
+
     public ReplaceResponseEntityBuilder() {
         // #allow(String...)
         doNext(new RewriteMethodInvocation(
@@ -241,7 +248,7 @@ public class ReplaceResponseEntityBuilder extends Recipe {
     }
 
     private void doNext(Recipe recipe) {
-        getRecipeList().add(recipe);
+        recipeList.add(recipe);
     }
 
     @Override

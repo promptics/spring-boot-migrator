@@ -63,7 +63,7 @@ public class CopyAnnotationAttributeVisitor extends JavaIsoVisitor<ExecutionCont
         if (sourceAnnotationAttributeValue.getValue() != null) {
             // If the annotation type is a shallow class then JavaType.getMethods is empty and AddOrUpdateAnnotationAttribute can't determine if the datatype of the attribute is String or not
             String targetAttributeValue = annotation.getType() instanceof JavaType.ShallowClass ? sourceAnnotationAttributeValue.getValueSource() : sourceAnnotationAttributeValue.getValue().toString();
-            TreeVisitor<?, ExecutionContext> addOrUpdateAnnotationAttributeVisitor = new AddOrUpdateAnnotationAttribute(targetAnnotationType, targetAttributeName, targetAttributeValue, false)
+            TreeVisitor<?, ExecutionContext> addOrUpdateAnnotationAttributeVisitor = new AddOrUpdateAnnotationAttribute(targetAnnotationType, targetAttributeName, targetAttributeValue, null, false, null)
                     .getVisitor();
             if (targetAnnotationOnlyHasOneLiteralArgument(a)) {
                 a = (J.Annotation) addOrUpdateAnnotationAttributeVisitor.visit(a, ctx, getCursor());

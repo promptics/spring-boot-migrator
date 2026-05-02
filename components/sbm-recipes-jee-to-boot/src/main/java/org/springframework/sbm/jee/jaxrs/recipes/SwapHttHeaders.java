@@ -24,12 +24,20 @@ import org.openrewrite.java.tree.Space;
 import org.openrewrite.java.tree.TypeUtils;
 import org.springframework.sbm.java.migration.recipes.RewriteMethodInvocation;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import static org.springframework.sbm.java.migration.recipes.RewriteMethodInvocation.methodInvocationMatcher;
 import static org.springframework.sbm.java.migration.recipes.RewriteMethodInvocation.renameMethodInvocation;
 
 public class SwapHttHeaders extends Recipe {
+
+    private final List<Recipe> recipeList = new ArrayList<>();
+
+    @Override
+    public List<Recipe> getRecipeList() {
+        return recipeList;
+    }
 
     public SwapHttHeaders() {
         /*
@@ -135,8 +143,7 @@ public class SwapHttHeaders extends Recipe {
     }
 
     private void doNext(Recipe getAcceptLanguageAsLocales) {
-        // This might not work
-        getRecipeList().add(getAcceptLanguageAsLocales);
+        recipeList.add(getAcceptLanguageAsLocales);
     }
 
     @Override

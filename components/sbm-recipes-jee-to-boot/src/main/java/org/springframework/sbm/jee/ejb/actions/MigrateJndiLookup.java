@@ -51,7 +51,7 @@ public class MigrateJndiLookup extends AbstractAction {
                 new RemoveUnusedLocalVariables(null),
                 new RemoveUnusedImports(),
                 new GenericOpenRewriteRecipe<>(() -> new AddImport<>("org.springframework.beans.factory.annotation.Autowired", null, false)),
-                new AutoFormat()
+                new AutoFormat(null)
         );
     }
 

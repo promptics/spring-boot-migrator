@@ -21,10 +21,19 @@ import org.openrewrite.java.JavaTemplate;
 import org.springframework.sbm.java.migration.recipes.RewriteMethodInvocation;
 import org.springframework.sbm.java.migration.recipes.openrewrite.ReplaceConstantWithAnotherConstant;
 
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 public class SwapFamilyForSeries extends Recipe {
+
+    private final List<Recipe> recipeList = new ArrayList<>();
+
+    @Override
+    public List<Recipe> getRecipeList() {
+        return recipeList;
+    }
 
     public SwapFamilyForSeries() {
         Map<String, String> fieldsMapping = new HashMap<>();
@@ -54,7 +63,7 @@ public class SwapFamilyForSeries extends Recipe {
     }
 
     private void doNext(Recipe recipe) {
-        getRecipeList().add(recipe);
+        recipeList.add(recipe);
     }
 
     @Override
