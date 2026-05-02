@@ -24,9 +24,11 @@ import org.springframework.boot.test.context.assertj.AssertableApplicationContex
 import org.springframework.boot.test.context.runner.ApplicationContextRunner;
 import org.springframework.boot.test.context.runner.ContextConsumer;
 import org.springframework.context.annotation.AnnotationConfigApplicationContext;
+import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.sbm.archfitfun.ExecutionScopeArchFitTestContext;
+import org.springframework.sbm.engine.recipe.UserInteractions;
 
 import java.io.File;
 import java.io.IOException;
@@ -38,7 +40,27 @@ public class SpringBeanProvider {
 
     @Configuration
     @ComponentScan(value = {"org.springframework.sbm", "org.springframework.rewrite"}, excludeFilters = @ComponentScan.Filter(classes = TestConfiguration.class))
-    public static class ComponentScanConfiguration { }
+    public static class ComponentScanConfiguration {
+
+        // No-op fallback so UserInteractions-requiring @Configuration recipes
+        // (e.g. MigrateJaxWsRecipe) wire up in the default test context. Production
+        // code provides its own bean (e.g. SpringShellUserInteractions); this is
+        // only used when no other implementation is on the test classpath.
+        @Bean
+        public UserInteractions userInteractions() {
+            return new UserInteractions() {
+                @Override
+                public boolean askUserYesOrNo(String question) {
+                    return false;
+                }
+
+                @Override
+                public String askForInput(String question) {
+                    return "";
+                }
+            };
+        }
+    }
 
     public static void run(ContextConsumer<AssertableApplicationContext> testcode, Class<?>... springBeans) {
         // Spring Boot 3.x defaults allow-bean-definition-overriding=false. Some SBM beans
@@ -95,7 +117,11 @@ public class SpringBeanProvider {
 //        annotationConfigApplicationContext.scan("org.springframework.sbm", "org.springframework.freemarker");
         annotationConfigApplicationContext.refresh();
         if (new File("./src/main/resources/templates").exists()) {
-            freemarker.template.Configuration configuration = annotationConfigApplicationContext.getBean(freemarker.template.Configuration.class); // FIXME: two freemarker configurations exist
+            // Disambiguate by bean name: spring-boot-starter-freemarker (transitively
+            // pulled in by sbm-recipes-jee-to-boot etc.) registers a bean named
+            // freeMarkerConfiguration via Boot auto-config, in addition to sbm-core's
+            // FreemarkerConfiguration#configuration() bean. Use the sbm-core one.
+            freemarker.template.Configuration configuration = annotationConfigApplicationContext.getBean("configuration", freemarker.template.Configuration.class);
             try {
                 configuration.setDirectoryForTemplateLoading(new File("./src/main/resources/templates"));
             } catch (IOException e) {
