@@ -377,12 +377,15 @@ class RemoveRedundantMavenCompilerPluginPropertiesTest {
 	@Test
 	void multiModuleTest() {
 
-		// Removed spring-boot-starter-parent:2.7.5 reference: required full Boot BOM
-		// transitive resolution which OR 8.80.1 attempts strictly. The test exercises
-		// multi-module plugin/property handling, not Boot inheritance.
 		String parentPomStr = """
 						<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
 						    <modelVersion>4.0.0</modelVersion>
+						    <parent>
+						      		<groupId>org.springframework.boot</groupId>
+						      		<artifactId>spring-boot-starter-parent</artifactId>
+						      		<version>2.7.5</version>
+						      		<relativePath/>
+						    </parent>
 						    <properties>
 						        <maven.compiler.source>17</maven.compiler.source>
 						        <maven.compiler.target>17</maven.compiler.target>
@@ -390,7 +393,6 @@ class RemoveRedundantMavenCompilerPluginPropertiesTest {
 						    <groupId>com.example</groupId>
 						    <artifactId>parent</artifactId>
 						    <version>1.0</version>
-						    <packaging>pom</packaging>
 						    <modules>
 						        <module>module1</module>
 						    </modules>
