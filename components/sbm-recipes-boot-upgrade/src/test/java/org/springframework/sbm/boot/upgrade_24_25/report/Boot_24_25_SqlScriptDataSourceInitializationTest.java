@@ -42,7 +42,7 @@ class Boot_24_25_SqlScriptDataSourceInitializationTest {
     }
 
     private ProjectContext getProjectContext(String applicationPropertiesLines) {
-        Path rootDirectory = Path.of("./dummy");
+        Path rootDirectory = Path.of("./target/dummy-test-path");
 
         ProjectContext projectContext = TestProjectContext.buildProjectContext()
                 .withProjectRoot(rootDirectory)

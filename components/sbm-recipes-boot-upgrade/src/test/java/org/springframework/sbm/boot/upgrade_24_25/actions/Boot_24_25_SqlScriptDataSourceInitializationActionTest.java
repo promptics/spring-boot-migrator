@@ -179,7 +179,7 @@ class Boot_24_25_SqlScriptDataSourceInitializationActionTest {
     }
 
     private ProjectContext getProjectContextTwoPropertiesFile(String applicationPropertiesLines1, String applicationPropertiesLines2) {
-        Path rootDirectory = Path.of("./dummy");
+        Path rootDirectory = Path.of("./target/dummy-test-path");
         String applicationPropertiesPath = "src/main/resources/application.properties";
         String applicationPropertiesPathTest = "src/main/resources/application-test.properties";
 
@@ -194,7 +194,7 @@ class Boot_24_25_SqlScriptDataSourceInitializationActionTest {
     }
 
     private ProjectContext getProjectContextSinglePropertiesFile(String applicationPropertiesLines) {
-        Path rootDirectory = Path.of("./dummy");
+        Path rootDirectory = Path.of("./target/dummy-test-path");
         String applicationPropertiesPath = "src/main/resources/application.properties";
 
         ProjectContext projectContext = TestProjectContext.buildProjectContext()
@@ -207,7 +207,7 @@ class Boot_24_25_SqlScriptDataSourceInitializationActionTest {
     }
 
     private ProjectContext getProjectContextTwoPropertiesFile(String applicationPropertiesLines) {
-        Path rootDirectory = Path.of("./dummy");
+        Path rootDirectory = Path.of("./target/dummy-test-path");
         String applicationPropertiesPath = "src/main/resources/application.properties";
         String applicationPropertiesPathTest = "src/main/resources/application-test.properties";
 
