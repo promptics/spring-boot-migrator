@@ -19,6 +19,7 @@ import lombok.Getter;
 import lombok.Setter;
 import org.apache.commons.io.FileUtils;
 import org.springframework.core.io.Resource;
+import org.springframework.rewrite.parser.SpringRewriteProperties;
 import org.springframework.sbm.engine.commands.ScanCommand;
 import org.springframework.sbm.engine.context.ProjectContext;
 import org.springframework.sbm.project.parser.ProjectContextInitializer;
@@ -28,6 +29,7 @@ import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Set;
 
 
 public class ProjectContextFileSystemTestSupport {
@@ -61,6 +63,16 @@ public class ProjectContextFileSystemTestSupport {
         final Path projectRoot = to;
         final ProjectContextHolder projectContextHolder = new ProjectContextHolder();
         SpringBeanProvider.run(ctx -> {
+                    // Fixtures are copied under ./target/test-projects/. The fork's default
+                    // ignoredPathPatterns include "**/target/**" which would filter the entire
+                    // fixture out of the scan. Override here so test fixtures rooted under
+                    // target/ are scanned. Mirrors RecipeIntegrationTestSupport.
+                    SpringRewriteProperties springRewriteProperties = ctx.getBean(SpringRewriteProperties.class);
+                    springRewriteProperties.setIgnoredPathPatterns(Set.of(
+                            "**/.git/**", "**/.idea/**", "**/.mvn/**", "**/.gitignore",
+                            "**/build/**", "**/.gradle/**", "**/node_modules/**",
+                            "**/out/**", "**/lib/**", "**/*.iml"));
+
                     ProjectContextInitializer projectContextBuilder = ctx.getBean(ProjectContextInitializer.class);
                     ScanCommand scanCommand = ctx.getBean(ScanCommand.class);
                     List<Resource> resources = scanCommand.scanProjectRoot(to.toString());
