@@ -59,8 +59,8 @@
         <module>components/sbm-support-jee</module>
         <module>components/sbm-support-weblogic</module>
         <module>components/sbm-recipes-jee-to-boot</module>
-        <!-- Activate one at a time. Next up:
         <module>components/sbm-recipes-spring-cloud</module>
+        <!-- Activate one at a time. Next up:
         <module>components/sbm-recipes-boot-upgrade</module>
         -->
 
