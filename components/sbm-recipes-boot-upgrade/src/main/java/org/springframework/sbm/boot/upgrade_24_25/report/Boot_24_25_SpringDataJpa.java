@@ -64,8 +64,10 @@ public class Boot_24_25_SpringDataJpa implements UpgradeSectionBuilder {
 
         callsToGetOneMethod.forEach(mc -> {
             Path relativePath = Path.of(".").toAbsolutePath().relativize(mc.getJavaSource().getResource().getAbsolutePath());
-            String description = String.format("calls `%s.%s`", mc.getMethodMatcher().getTargetTypePattern(), mc.getMethodMatcher().getMethodNamePattern());
-            String fix = String.format("replace with call to `%s.getById()`", mc.getMethodMatcher().getTargetTypePattern());
+            // OR 8.80.1 dropped getTargetTypePattern/getMethodNamePattern; toString() yields
+            // the full "<type> <name>(<args>)" pattern.
+            String description = String.format("calls `%s`", mc.getMethodMatcher());
+            String fix = String.format("replace with call to `%s.getById()`", mc.getMethodMatcher());
             builder.row(relativePath.toString(), description, fix);
         });
 

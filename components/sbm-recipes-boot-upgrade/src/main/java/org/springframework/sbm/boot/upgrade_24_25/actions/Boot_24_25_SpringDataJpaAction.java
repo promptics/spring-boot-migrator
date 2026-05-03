@@ -66,9 +66,11 @@ public class Boot_24_25_SpringDataJpaAction extends AbstractAction {
     }
 
     private void refactorCallsToGetOne(List<MethodCall> callsToGetOneMethods) {
+        // OR 8.80.1 dropped MethodMatcher.getTargetTypePattern/getMethodNamePattern/
+        // getArgumentPattern accessors; toString() returns the full method pattern in
+        // "<type> <name>(<args>)" form which is exactly what renameMethodCalls expects.
         callsToGetOneMethods.forEach(c -> c.getJavaSource()
-                // FIXME: calculate target type
-                .renameMethodCalls(/*c.getMethodMatcher().getTargetTypePattern() + */"com.example.springboot24to25example.TagRepository " + c.getMethodMatcher().getMethodNamePattern() + "(" + c.getMethodMatcher().getArgumentPattern() + ")", "getById")
+                .renameMethodCalls(c.getMethodMatcher().toString(), "getById")
         );
     }
 
