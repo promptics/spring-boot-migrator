@@ -86,37 +86,22 @@ d7fdaa32 test(sbm-core): make SpringBeanProvider compatible with downstream modu
 (Older history below `6a4f4b29` is the original PR baseline — see prior
 HANDOVER versions or `git log` for the full list.)
 
-## spring-rewrite-commons fork patches (`/tmp/src/spring-rewrite-commons-launcher`, branch `bump-or-8.80.1`)
+## spring-rewrite-commons fork patches (`origin/bump-or-8.80.1` on `promptics/spring-rewrite-commons`)
 
 ```
-928e6ae fix(maven): skip classpath collection for unparseable sources             ← re-derived
-f5b4e40 fix(maven): detect multi-module via <modules> when packaging is inherited ← re-derived
-d481cdf parser: tolerate empty/blank-project resources                            ← re-derived
+a223201 fix(maven): skip classpath collection for unparseable sources              ← pushed
+<sha>   fix(maven): detect multi-module via <modules> when packaging is inherited  ← pushed
+<sha>   parser: tolerate empty/blank-project resources                             ← pushed
 1a29dcb fix(or): RewriteRecipeDiscovery activation guard works with leaf recipes
 fedfaf4 fix(test): adapt 4 launcher/polyglot test assertions to OR/Maven contracts
 d3f3313 test(gradle): update brittle plugin-count literal 9 → 10 (not OR-related)
 ```
 
-The top three are local-only — push to `origin/bump-or-8.80.1` is **blocked
-from this sandbox**: GitHub HTTPS push asks for a username and
-`GIT_TERMINAL_PROMPT=0` returns `could not read Username for 'https://github.com'`.
-No `GH_TOKEN`/`GITHUB_TOKEN`/`~/.git-credentials`/credential helper is
-configured. Patches are exported as `git format-patch` files in this sandbox
-at `/tmp/sbm-rewrite-commons-patches/`:
-
-```
-0001-parser-tolerate-empty-blank-project-resources.patch
-0002-fix-maven-detect-multi-module-via-modules-when-packa.patch
-0003-fix-maven-skip-classpath-collection-for-unparseable-.patch
-```
-
-To push from a host with creds:
-```bash
-git clone https://github.com/promptics/spring-rewrite-commons.git
-cd spring-rewrite-commons && git checkout bump-or-8.80.1
-git am /path/to/0001-*.patch /path/to/0002-*.patch /path/to/0003-*.patch
-git push origin bump-or-8.80.1
-```
+The top three were re-derived in this session (the prior sandbox lost them
+before they reached origin) and pushed via `git am` from a host with GitHub
+creds. Equivalent local commits live in this sandbox at
+`/tmp/src/spring-rewrite-commons-launcher` (different author SHAs because of
+the re-apply round-trip — content is identical).
 
 To rebuild and reinstall locally after edits (avoid pulling
 gradle-tooling-api which the sandbox cannot reach at repo.gradle.org):
@@ -318,9 +303,11 @@ mvn -pl components/sbm-core,components/recipe-test-support,components/sbm-openre
 - SBM pushes go to `origin` on `claude/issue-6-7/integrate-rewrite-commons` (PR
   #16). Push each per-module activation as you go; the user's stop-hook
   enforces this (`~/.claude/stop-hook-git-check.sh`).
-- rewrite-commons fork pushes are blocked from this sandbox (no GitHub creds)
-  — the 3 re-derived patches are local-only until pushed from a host with
-  creds. Patches available at `/tmp/sbm-rewrite-commons-patches/` for `git am`.
+- rewrite-commons fork pushes are still blocked **from this sandbox** (no
+  GitHub creds, no SSH binary). The 3 patches needed in this session were
+  pushed by the user via `git am` from their host. Future fork edits need
+  the same out-of-sandbox roundtrip — keep patches under
+  `/tmp/sbm-rewrite-commons-patches/` if you need to hand them off.
 - User explicitly does NOT want failing tests `@Disabled` as a shortcut — fix
   the root cause first.
 - The proxy port for `origin` rotates between runs (37447 → 41139 → 35735 →
