@@ -221,8 +221,13 @@ public class DependencyChangeHandler {
             List<Parser.Input> testSources = testJavaSourceSet.stream()
                     .map(ja -> new Parser.Input(ja.getAbsolutePath(), () -> new ByteArrayInputStream(ja.print().getBytes())))
                     .toList();
-            ClasspathDependencies classpathDependencies = testJavaSourceSet.get(0).getResource().getSourceFile().getMarkers().findFirst(ClasspathDependencies.class).get();
-            classpathDependencies.setDependencies(new ArrayList<>(compileClasspath));
+            // Refresh the in-memory ClasspathDependencies marker on the first test source if
+            // present so any downstream readers see the updated classpath. Not all parser
+            // pipelines attach this marker to test sources (e.g. minimal fixtures parsed
+            // outside the full Maven flow), so guard with ifPresent.
+            testJavaSourceSet.get(0).getResource().getSourceFile().getMarkers()
+                    .findFirst(ClasspathDependencies.class)
+                    .ifPresent(cd -> cd.setDependencies(new ArrayList<>(compileClasspath)));
             List<SourceFile> test = javaParserBuilder.classpath(scopeListMap.get(Scope.Test)).build().parseInputs(testSources, module.getProjectRootDir(), executionContext).toList();
             result.addAll(test);
         }
