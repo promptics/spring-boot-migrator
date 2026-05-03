@@ -97,7 +97,7 @@ public class ResponseStatusTest {
                 + "\n"
                 + "public class TestController {\n"
                 + "\n"
-                + "    public HttpStatus respond() {\n"
+                + "    public org.springframework.http.HttpStatus respond() {\n"
                 + "       return HttpStatus.OK;\n"
                 + "    }\n"
                 + "}\n"
@@ -392,7 +392,7 @@ public class ResponseStatusTest {
                 + "	}\n"
                 + "\n"
                 + "	@Override\n"
-                + "	public HttpStatus getStatus() {\n"
+                + "	public org.springframework.http.HttpStatus getStatus() {\n"
                 + "		return HttpStatus.NOT_FOUND;\n"
                 + "	}\n"
                 + "}";
