@@ -102,8 +102,8 @@ public class ChangeJavaxPackagesToJakartaTest {
 
         ProjectContext context = TestProjectContext.buildProjectContext()
                 .withBuildFileHavingDependencies(/*"javax.money:money-api:1.1", */"jakarta.persistence:jakarta.persistence-api:2.2.3")
-                .withJavaSource("src/main/java/com/example/SomeClass.java", javaClass1)
-                .withJavaSource("src/main/java/com/example/SomeClass2.java", javaClass2)
+                .withJavaSource("src/main/java", javaClass1)
+                .withJavaSource("src/main/java", javaClass2)
                 .build();
 
 //        context.getProjectJavaSources().apply(new ChangePackage("javax", "jakarta", true));
