@@ -615,10 +615,13 @@ public class TestProjectContext {
                         "similar; replace with the default (target/dummy-test-path) or a system tmp dir.");
             }
             try {
-                Files.walk(projectRoot)
-                        .sorted(Comparator.reverseOrder())
-                        .map(Path::toFile)
-                        .forEach(File::delete);
+                if (Files.exists(projectRoot)) {
+                    Files.walk(projectRoot)
+                            .sorted(Comparator.reverseOrder())
+                            .map(Path::toFile)
+                            .forEach(File::delete);
+                }
+                Files.createDirectories(projectRoot);
             } catch (IOException e) {
                 throw new RuntimeException(e);
             }
