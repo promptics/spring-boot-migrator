@@ -33,7 +33,8 @@ import org.springframework.sbm.engine.context.ProjectContext;
 import org.springframework.sbm.engine.recipe.AbstractAction;
 import org.springframework.sbm.java.api.JavaSource;
 import org.springframework.sbm.java.util.BasePackageCalculator;
-import org.springframework.sbm.java.util.JavaSourceUtil;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import org.springframework.sbm.jee.jaxrs.actions.ConvertJaxRsAnnotations;
 import org.springframework.sbm.mule.resources.filter.RamlFileProjectResourceFilter;
 
@@ -49,6 +50,8 @@ import java.util.stream.Collectors;
 @Builder
 @Slf4j
 public class MigrateRamlToSpringMvc extends AbstractAction {
+
+    private static final Pattern PACKAGE_PATTERN = Pattern.compile("package ([\\w\\d\\.]*);");
 
     @Autowired
     @JsonIgnore
@@ -148,7 +151,8 @@ public class MigrateRamlToSpringMvc extends AbstractAction {
             try {
                 String source = Files.readString(j);
                 System.out.println(source);
-                String packageName = JavaSourceUtil.retrievePackageName(source);
+                Matcher packageMatcher = PACKAGE_PATTERN.matcher(source);
+                String packageName = packageMatcher.find() ? packageMatcher.group(1) : "";
                 return mainJavaSourceSet.addJavaSource(context.getProjectRootDirectory(), source, packageName);
             } catch (IOException e) {
                 throw new RuntimeException(e);

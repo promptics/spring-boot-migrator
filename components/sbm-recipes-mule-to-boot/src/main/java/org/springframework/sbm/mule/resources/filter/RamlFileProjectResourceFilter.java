@@ -16,8 +16,8 @@
 package org.springframework.sbm.mule.resources.filter;
 
 import org.springframework.sbm.common.api.TextResource.TextSource;
-import org.springframework.sbm.project.resource.ProjectResourceSet;
-import org.springframework.sbm.project.resource.filter.ProjectResourceFinder;
+import org.springframework.rewrite.resource.ProjectResourceSet;
+import org.springframework.rewrite.resource.finder.ProjectResourceFinder;
 import org.openrewrite.text.PlainText;
 
 import java.util.List;
