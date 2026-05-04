@@ -85,7 +85,30 @@ public class JavaSourceSetImpl implements JavaSourceSet {
         // FIXME: #7 JavaParser
         javaParserBuilder.build().reset();
 
-        Stream<SourceFile> compilationUnits = javaParserBuilder.build().parse(sourceCodes);
+        // OR 8.80.1: dynamically-added sources need the project's compile classpath wired
+        // into the parser so annotation/type references (e.g. @javax.ws.rs.Path) resolve.
+        // Otherwise downstream actions that filter by JavaType.Class fall back to
+        // JavaType.Unknown and skip the type. Look up classpath from any BuildFile
+        // present in the project resource set. Clone the parser builder so we don't
+        // mutate the shared Spring bean.
+        java.util.Set<java.nio.file.Path> classpath = projectResourceSet.stream()
+                .filter(r -> r instanceof org.springframework.sbm.build.api.BuildFile)
+                .map(r -> (org.springframework.sbm.build.api.BuildFile) r)
+                .findFirst()
+                .map(bf -> bf.getClasspath(org.openrewrite.maven.tree.Scope.Compile))
+                .orElse(java.util.Collections.emptySet());
+        org.openrewrite.java.JavaParser.Builder<?, ?> parserForAdd = javaParserBuilder.clone();
+        if (!classpath.isEmpty()) {
+            parserForAdd.classpath(classpath);
+        }
+
+        Stream<SourceFile> compilationUnits = parserForAdd.build().parse(sourceCodes);
+
+        // Attach the same classpath as a ClasspathDependencies marker so subsequent
+        // operations (e.g. OpenRewriteType.addAnnotation) that build a JavaTemplate
+        // parser from this marker get the correct types.
+        org.springframework.rewrite.parser.maven.ClasspathDependencies classpathMarker =
+                new org.springframework.rewrite.parser.maven.ClasspathDependencies(new ArrayList<>(classpath));
 
         List<JavaSource> addedSources = new ArrayList<>();
 
@@ -95,6 +118,9 @@ public class JavaSourceSetImpl implements JavaSourceSet {
             Path sourceFilePath = sourceFolder.resolve(sourceFileName);
             if(!Files.exists(sourceFilePath)) {
                 J.CompilationUnit compilationUnit = cu.withSourcePath(sourceFilePath);
+                if (!classpath.isEmpty()) {
+                    compilationUnit = compilationUnit.withMarkers(compilationUnit.getMarkers().addIfAbsent(classpathMarker));
+                }
                 OpenRewriteJavaSource addedSource = new OpenRewriteJavaSource(projectRoot, compilationUnit, javaRefactoringFactory.createRefactoring(compilationUnit), javaParserBuilder, executionContext);
                 addedSource.markChanged();
                 projectResourceSet.add(addedSource);

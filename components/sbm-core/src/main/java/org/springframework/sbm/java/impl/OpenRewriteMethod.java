@@ -113,7 +113,11 @@ public class OpenRewriteMethod implements Method {
                 J.MethodDeclaration md = super.visitMethodDeclaration(method, executionContext);
                 if(md == getMethodDecl()) {
                     J.CompilationUnit cu = getCursor().dropParentUntil(J.CompilationUnit.class::isInstance).getValue();
-                    List<Path> dependencies = cu.getMarkers().findFirst(ClasspathDependencies.class).get().getDependencies();
+                    // Dynamically-added sources don't carry the ClasspathDependencies marker; fall
+                    // back to an empty classpath instead of NPE.
+                    List<Path> dependencies = cu.getMarkers().findFirst(ClasspathDependencies.class)
+                            .map(ClasspathDependencies::getDependencies)
+                            .orElse(java.util.Collections.emptyList());
 
                     // FIXME: (jaxrs): Build JavaParser and use dependsOn to provide stubs for required types
                     JavaParser.Builder clone = javaParserBuilder.classpath(dependencies)
