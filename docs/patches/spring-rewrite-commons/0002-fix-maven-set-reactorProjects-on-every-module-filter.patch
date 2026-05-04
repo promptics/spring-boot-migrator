@@ -1,0 +1,90 @@
+From 80b74fc6dd40acf5b95274c5086f40fffb964603 Mon Sep 17 00:00:00 2001
+From: Claude <noreply@anthropic.com>
+Date: Mon, 4 May 2026 10:56:22 +0000
+Subject: [PATCH 2/2] fix(maven): set reactorProjects on every module + filter
+ pathsToOtherMavenProjects to descendants only
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+
+In nested-module reactors (e.g. root -> app -> app/spring-app),
+MavenProjectAnalyzer.map() only set reactorProjects on the root.
+Non-root modules then had empty getCollectedProjects(), so
+MavenModuleParser.pathsToOtherMavenProjects returned an empty
+skipResourceScanDirs set for them — and the intermediate 'app' module
+re-parsed every resource under app/spring-app/, producing duplicate
+SourceFile entries (leaf's pom.xml and spring.factories appeared twice
+in the final ProjectResourceSet).
+
+Two-part fix:
+
+1. MavenProjectAnalyzer.map() now sets reactorProjects on every project
+   (full reactor list, including self). The downstream filter in
+   pathsToOtherMavenProjects already excludes self via build-file equality.
+
+2. MavenModuleParser.pathsToOtherMavenProjects now filters to projects
+   whose basedir is a *strict descendant* of the current project's basedir.
+   The previous logic returned every other reactor project, including
+   parents and siblings; combined with the startsWith-based filter that
+   consumes these paths, that would also exclude the current module's
+   own resources (since they live under the parent too). Filtering to
+   true descendants matches the intent: 'skip resources owned by a more
+   specific sub-module'.
+
+Reproduced and verified against SBM's
+CreateAutoconfigurationActionTest.moduleInsideModuleMavenSetup; flat /
+single-module / 2-level-nested cases continue to work.
+---
+ .../rewrite/parser/maven/MavenModuleParser.java       | 11 +++++++++++
+ .../rewrite/parser/maven/MavenProjectAnalyzer.java    |  9 ++++++---
+ 2 files changed, 17 insertions(+), 3 deletions(-)
+
+diff --git a/spring-rewrite-commons-launcher/src/main/java/org/springframework/rewrite/parser/maven/MavenModuleParser.java b/spring-rewrite-commons-launcher/src/main/java/org/springframework/rewrite/parser/maven/MavenModuleParser.java
+index 978f3ef..f8798d0 100644
+--- a/spring-rewrite-commons-launcher/src/main/java/org/springframework/rewrite/parser/maven/MavenModuleParser.java
++++ b/spring-rewrite-commons-launcher/src/main/java/org/springframework/rewrite/parser/maven/MavenModuleParser.java
+@@ -358,9 +358,20 @@ public class MavenModuleParser {
+ 	}
+ 
+ 	private Set<Path> pathsToOtherMavenProjects(MavenProject mavenProject, Path moduleBuildFile) {
++		// Only return basedirs of *descendant* modules, not parents/siblings. The
++		// returned paths feed into a startsWith-based exclusion filter; including
++		// a parent's basedir would also exclude the current module's own resources
++		// (since they live under the parent too), and including a sibling's basedir
++		// excludes nothing relevant. Filtering to true descendants matches the
++		// intent: "skip resources owned by a more specific sub-module".
++		Path currentBasedir = mavenProject.getBasedir().toAbsolutePath().normalize();
+ 		return mavenProject.getCollectedProjects()
+ 			.stream()
+ 			.filter(p -> !LinuxWindowsPathUnifier.pathEquals(p.getBuildFile().getPath(), moduleBuildFile))
++			.filter(p -> {
++				Path otherBasedir = p.getBasedir().toAbsolutePath().normalize();
++				return otherBasedir.startsWith(currentBasedir) && !otherBasedir.equals(currentBasedir);
++			})
+ 			.map(p -> p.getFile().toPath().getParent())
+ 			.collect(Collectors.toSet());
+ 	}
+diff --git a/spring-rewrite-commons-launcher/src/main/java/org/springframework/rewrite/parser/maven/MavenProjectAnalyzer.java b/spring-rewrite-commons-launcher/src/main/java/org/springframework/rewrite/parser/maven/MavenProjectAnalyzer.java
+index 1439ad5..12947ff 100644
+--- a/spring-rewrite-commons-launcher/src/main/java/org/springframework/rewrite/parser/maven/MavenProjectAnalyzer.java
++++ b/spring-rewrite-commons-launcher/src/main/java/org/springframework/rewrite/parser/maven/MavenProjectAnalyzer.java
+@@ -64,10 +64,13 @@ public class MavenProjectAnalyzer {
+ 		if (mavenProjects.isEmpty()) {
+ 			return mavenProjects;
+ 		}
+-		// set all non parent poms as collected projects for root parent p
++		// Make every project aware of the full reactor list (not only the root).
++		// MavenModuleParser.pathsToOtherMavenProjects() relies on this to know which
++		// sub-module dirs to skip when scanning a module's own resources; without it,
++		// non-root modules treat the entire reactor as belonging to themselves and
++		// re-parse sub-module resources, producing duplicates in nested layouts.
+ 		List<MavenProject> collected = new ArrayList<>(mavenProjects);
+-		collected.remove(0);
+-		mavenProjects.get(0).setReactorProjects(collected);
++		mavenProjects.forEach(mp -> mp.setReactorProjects(collected));
+ 		return mavenProjects;
+ 	}
+ 
+-- 
+2.43.0
+
