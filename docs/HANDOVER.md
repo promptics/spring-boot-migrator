@@ -16,13 +16,14 @@ PR.
 ## Current branch
 
 ```
-SBM:                    claude/issue-6-7/integrate-rewrite-commons    (PR #16, draft)
-                        tip pushed to origin (see git log)
+SBM:                    claude/handover-follow-up-idznA               (PR #18, draft)
+                          stacks on claude/fix-mule-to-boot-tests-VhHm0 (PR #17, draft)
+                          stacks on claude/issue-6-7/integrate-rewrite-commons (PR #16, draft)
 spring-rewrite-commons: origin/bump-or-8.80.1 tip 73baedd
                         (synthetic-input + nested-module fix landed)
 ```
 
-## Active reactor (11 modules, all green) ✅
+## Active reactor (12 modules, all green) ✅
 
 ```
 spring-boot-migrator         (root)
@@ -39,8 +40,12 @@ sbm-recipes-jee-to-boot      — 146 tests, 15 pre-existing @Disabled ✅
 sbm-recipes-spring-cloud     —  10 tests, 1 env failure ✅
 sbm-recipes-boot-upgrade     — 184 tests, 4 skipped ✅
 sbm-recipes-spring-framework —  17 tests, 4 skipped ✅
-sbm-recipes-mule-to-boot     —  90 tests, 3 pre-existing @Disabled ✅  ← just landed
+sbm-recipes-mule-to-boot     —  90 tests, 3 pre-existing @Disabled ✅
+jaxrs-recipes                — 138 tests, 13 pre-existing @Disabled ✅  ← just landed
 ```
+
+The OR 8.13.4 → 8.80.1 module-activation phase of issue #5 is now **complete**.
+No inactive modules remain.
 
 The sbm-core/sbm-recipes-spring-cloud env failures that surface in this sandbox
 (`GitSupportTest.addAllAndCommit`, `PreconditionVerifierIntegrationTest.allChecksSucceed`,
@@ -58,14 +63,13 @@ exception list. Standalone `mvn -pl components/<module> test` doesn't see it
 sbm-core's exception list in this session; remaining inactive modules carry the
 same drift and will need the same one-line alignment when activated.
 
-## Inactive modules (commented out in root pom — activate one at a time)
+## Inactive modules
 
-```
-jaxrs-recipes                 ← LAST INACTIVE MODULE
-```
+None — all 12 components/* modules that exist in the repo are now active in
+the reactor.
 
-**Note**: a `sbm-recipes-jpa` module appeared in earlier handover drafts but has
-**never existed** as a standalone module in this repo's history. The JPA
+**Note**: a `sbm-recipes-jpa` module appeared in earlier handover drafts but
+has **never existed** as a standalone module in this repo's history. The JPA
 recipes/actions live inside two already-active modules:
 - `components/sbm-recipes-jee-to-boot/src/main/java/.../jee/jpa/...` (recipes)
 - `components/sbm-support-jee/src/main/java/.../jee/jpa/...` (filters)
@@ -81,7 +85,20 @@ Java baseline:            17       (still — bump to 21 in #8)
 rewrite-recipe-bom:       not yet adopted (#7)
 ```
 
-## Commits added in the most recent session (tail of PR #16, newest first)
+## Commits added in the most recent session (tip of PR #18, newest first)
+
+```
+9b3cdd46 build: re-activate components/jaxrs-recipes in the reactor
+06ee6050 test(jaxrs-recipes): align ArchUnit ExecutionContext exception list with sbm-core
+e54a7ccb test(jaxrs-recipes): adapt fixtures to OR 8.80.1 output drift and stricter validation
+84ef4841 fix(jaxrs-recipes): split modified inputs and synthesized sources in SbmAdapterRecipe
+f5c8529a fix(jaxrs-recipes): remove stray ) in SwapResponseWithResponseEntity#readEntity JavaTemplate
+cf3e31d0 fix(jaxrs-recipes): mark UserInteractionsDummy @Primary to disambiguate two-bean DI
+246458d8 fix(jaxrs-recipes): adapt OR 8.80.1 ctor arity at AutoFormat / OrderImports / AddOrUpdateAnnotationAttribute call sites
+76245ac5 build(jaxrs-recipes): inherit parent pom + drop rewrite-recipe-bom
+```
+
+## Commits in the parent PR #17 stack (newest first)
 
 ```
 f1ba3d0d docs: explain jaxrs-recipes activation status in root pom comment
@@ -312,25 +329,13 @@ Plus 4 in `AddAnnotationAndThenDependency2Test` similarly deferred.
 - **#9** Bump Spring Boot 3.1.x → latest 3.x
 - **#10** Bump Spring Boot to 4.x
 
-## Next module to activate (per one-at-a-time strategy)
+## Next module to activate
 
-`sbm-recipes-boot-upgrade` is next. **Compile fixes and the easy test-fixture
-drift fixes are already on the branch** (commits `d4a3b28f`, `b4e583b0`,
-`b1feedc8`, plus `ffc83ce1` in sbm-core). The module pom-line is **kept
-commented** because 19 tests still fail. Detailed triage of those failures
-follows in the next section.
-
-To resume:
-
-1. Edit root `pom.xml` — uncomment `<module>components/sbm-recipes-boot-upgrade</module>`
-2. `mvn -pl components/sbm-recipes-boot-upgrade -am install -DskipTests -Dspring-javaformat.skip=true`
-3. `mvn -pl components/sbm-recipes-boot-upgrade test -Dspring-javaformat.skip=true`
-4. Apply the fork patch listed below (cluster #1) so spring.factories actually
-   parses, then work through the remaining clusters.
-
-After the module is green (env failures aside), commit the activation as
-`build: re-activate components/sbm-recipes-boot-upgrade in the reactor` and
-push to PR #16.
+**Done.** All components/* modules that exist in the repo are now active in
+the reactor; the OR 8.13.4 → 8.80.1 module-activation phase is complete.
+Resolution summaries for each activated module are kept below as historical
+reference. The handover continues with the next-up issues (#7 / #8 / #9 / #10)
+in the "Issues queued" section above.
 
 ## sbm-recipes-boot-upgrade — current status
 
@@ -370,13 +375,19 @@ mvn -pl components/sbm-recipes-boot-upgrade test -Dspring-javaformat.skip=true
 
 ## Where I left off
 
-- Working tree clean on `claude/fix-mule-to-boot-tests-VhHm0` (off PR #16 tip
-  `e8579cea`). Active reactor (11 modules) all green; sbm-recipes-mule-to-boot
-  is now **activated** in `pom.xml` (`build: re-activate components/sbm-recipes-mule-to-boot
-  in the reactor` — `bc414b5e`).
-- All fork patches pushed (`70bf438` + `73baedd` on `bump-or-8.80.1`).
-- 5 commits added in this session to bring mule-to-boot green and activate it
-  (see commit list above).
+- Working tree clean on `claude/handover-follow-up-idznA` (off PR #17 tip
+  `f5637b4c`). Active reactor (12 modules) all green; jaxrs-recipes is now
+  **activated** in `pom.xml` (`build: re-activate components/jaxrs-recipes
+  in the reactor` — `9b3cdd46`). PR #18 (draft) opened against PR #17.
+- All fork patches still on origin/bump-or-8.80.1 (`70bf438` + `73baedd`);
+  no new fork edits needed in this session.
+- 8 commits added in this session to bring jaxrs-recipes green and activate
+  it (see commit list above).
+- The OR 8.80.1 module-activation phase is complete. Next work moves to the
+  follow-on issues queued in #5: #7 (rewrite-recipe-bom adoption — note the
+  jaxrs-recipes pom just dropped its local 2.14.0 import; the proper bump
+  would re-introduce a current bom version once OR 8.80.1's compatible bom
+  is settled), #8 (Java 21), #9 (Boot 3.x latest), #10 (Boot 4).
 
 ### sbm-recipes-mule-to-boot — RESOLVED
 
@@ -402,47 +413,26 @@ still omitted those exceptions. Aligned the per-module copies with sbm-core in
 a test-scope `test-helper` dep to `sbm-support-jee` (the other two already had it
 transitively via `recipe-test-support`).
 
-### Next module to activate — jaxrs-recipes (prep landed, NOT yet activated)
+### jaxrs-recipes — RESOLVED
 
-Compile-only prep work is on the branch (`5732ff13`). What's done:
+138 tests, 0 failures, 0 errors, 13 pre-existing @Disabled.
 
-- Pinned `openrewrite` 8.29.0 → 8.80.1, `openrewrite.spring` 4.32.0 → 5.0.5,
-  `spring-boot` 3.3.1 → 3.1.2 to match reactor.
-- Bumped lombok 1.18.30 → 1.18.34 (the spring-boot BOM imports 1.18.28 which
-  hits the `JCImport.qualid` NoSuchFieldError under JDK 21). Added an explicit
-  `provided`-scope lombok dep so the BOM doesn't override.
-- Excluded `spring-rewrite-commons-plugin-invoker-polyglot` test dep — it
-  transitively depends on the gradle plugin invoker, which depends on
-  `gradle-tooling-api 8.4` from `repo.gradle.org` (sandbox can't reach it).
-  Commented out the only consumer (`JaxRsThroughAdapterTest$WithRewritePlugin`).
-- Disambiguated `JavaTemplate.Builder` vs `Recipe.Builder` in
-  `ReplaceResponseEntityBuilder` (OR 8.80.1 introduced `Recipe.Builder` which
-  was shadowing the existing `JavaTemplate.Builder` import).
+#### Resolution summary
 
-What's left (138 tests, 2F + 110E + 13 skipped):
+| Cluster | Test(s) | Resolution |
+|---------|---------|------------|
+| 1 — `Dependency` 7-arg ctor (~110 errors across the module) | every `TestProjectContext`-using test | Root cause was the local `rewrite-recipe-bom 2.14.0` import in `components/jaxrs-recipes/pom.xml`'s dependencyManagement, which pinned `rewrite-maven` to 8.29.0 against rewrite-core 8.80.1. The module also had no `<parent>` declaration so the root pom's `${openrewrite.version}` dependencyManagement never reached it. Wired up the parent and dropped the BOM (commit `76245ac5`). |
+| 2 — `UserInteractions` two-bean DI (compounding 110+ errors with cluster 1) | `MigrateJaxWsRecipe`-using tests | `UserInteractionsDummy` had a typo'd `@ConditionalOnMissingBean(type = "org.springframework.sbm.UserInteractions")` (the actual interface FQCN is `...engine.recipe.UserInteractions`) and the manual `register()`-based test context never honors `@ConditionalOnMissingBean` anyway. With the new `SpringBeanProvider.run` register-if-missing fallback in sbm-core, both beans landed in the context. Replaced the (broken) conditional with `@Primary` so the dummy wins (commit `cf3e31d0`). |
+| 3 — OR 8.80.1 ctor arity at compile sites (hidden until cluster 1 unlocked) | `MigrateJndiLookup`, `WebServiceDescriptor`, `CopyAnnotationAttributeVisitor` | Same arity bumps already applied to sbm-recipes-jee-to-boot: `AutoFormat()` → `(null)`, `OrderImports(false)` → `(false, null)`, `AddOrUpdateAnnotationAttribute` 4-arg → 6-arg (commit `246458d8`). |
+| 4 — `SwapResponseWithResponseEntity#readEntity` template stray paren | `ResponseEntityReplacementTest.instanceMethods` | `JavaTemplate.builder("#{any(...)}.getBody())")` — extra trailing `)`. OR 8.13.4 was lenient; 8.80.1 strict-fails with `generated 0 statements` (commit `f5c8529a`). |
+| 5 — `SbmAdapterRecipe` / `JaxRsThroughAdapterTest$WithRewriteTest` | `simple`, `theTest` | Two OR 8.80.1 stricter checks: empty `getDisplayName/getDescription` rejected by `validateRecipeNameAndDescription`, and `LargeSourceSetCheckingExpectedCycles.onGenerateCollision` rejecting `generate()` returning paths that already existed. Refactored the accumulator into a holder type that splits modified inputs (now flow through `getVisitor`) from synthesized sources (`generate`). Updated test expected literals to reflect the actual `@PathParam` → `@PathVariable` migration the wrapped recipe correctly performs, and dropped expectedCyclesThatMakeChanges 2 → 1 since the refactored adapter completes in one cycle. `theTest` opts out of LST type validation because the wrapped `MigrateJaxRsRecipe` leaves dangling `APPLICATION_JSON` references — a pre-existing recipe limitation that OR 8.80.1's stricter LST validation now surfaces (commit `84ef4841`, plus the test changes folded into `e54a7ccb`). |
+| 6 — fixture drift | `ResponseStatusTest`, `ConvertJaxRsAnnotationsTest`, `MigrateEjbDeploymentDescriptorTest`, `MigrateEjbAnnotationsTest`, `ReplaceMediaTypeTest` | `ChangeType` FQCN at return-type position; import-blank-line drift between groups; `{}` vs `{ }`; comment-block continuation lines dropping to column 0 under the new annotation-injection path; one stray-quote ParseError (`RequestMethod.POST)"`) (commit `e54a7ccb`). |
+| 7 — ArchUnit | `ControlledInstantiationOfExecutionContextTest` | Reactor activation pulls test-helper / sbm-core `target/classes` onto the classpath. Aligned the per-module copy with sbm-core's exception list (`SbmCoreConfig` + `OpenRewriteTestSupport` + `notBe(...).and(notBe(...))` chained-condition form) (commit `06ee6050`). |
 
-- **Dependency 7-arg ctor**: ~100 errors are `NoSuchMethod 'void
-  org.openrewrite.maven.tree.Dependency.<init>(GroupArtifactVersion, String,
-  String, String, List, String, Map)'`. Same OR 8.80.1 API breakage adapted
-  in sbm-core (see `MavenRepository`/`Dependency`/`ChangePackaging` ctor
-  changes in PR #16 highlights). Recipes/actions/tests in jaxrs-recipes still
-  use the older arity.
-- **UserInteractions two-bean conflict**: `MigrateJaxWsRecipe` declares a
-  `UserInteractions` injection but the test context exposes both
-  `userInteractions` and `userInteractionsDummy`. The
-  `SpringBeanProvider.run` register-if-missing fix in sbm-core (commit
-  `92e76a33` from earlier session) doesn't yet handle the case where two
-  beans of the same type are present. Likely fix: prefer the non-dummy
-  variant via `@Primary` or qualifier.
-- After those clear, the standard ArchUnit
-  `ControlledInstantiationOfExecutionContextTest` exception-list alignment
-  (per the recurring pattern documented above for sbm-support-jee/weblogic/
-  jee-to-boot/spring-cloud/boot-upgrade/spring-framework/mule-to-boot)
-  will need to land on jaxrs-recipes' copy.
-
-Once the module is green, uncomment `<module>components/jaxrs-recipes</module>`
-in root `pom.xml` (commented placeholder is already in place at line 66) and
-commit as `build: re-activate components/jaxrs-recipes in the reactor`.
+The lombok 1.18.34 / spring-boot 3.1.2 / OR 8.80.1 pinning + polyglot dep
+exclusion + `JaxRsThroughAdapterTest$WithRewritePlugin` commenting from the
+prior session (commit `5732ff13`) carried over unchanged — they were
+correct, just blocked by clusters 1+2.
 
 ### Notes from sbm-recipes-spring-framework activation (this session)
 
