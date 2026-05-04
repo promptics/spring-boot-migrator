@@ -22,7 +22,7 @@ spring-rewrite-commons: origin/bump-or-8.80.1 tip 73baedd
                         (synthetic-input + nested-module fix landed)
 ```
 
-## Active reactor (9 modules, all green) ✅
+## Active reactor (10 modules, all green) ✅
 
 ```
 spring-boot-migrator         (root)
@@ -35,7 +35,8 @@ sbm-support-jee              — 10 tests, 5 pre-existing @Disabled ✅
 sbm-support-weblogic         —  6 tests, all green ✅
 sbm-recipes-jee-to-boot      — 146 tests, 15 pre-existing @Disabled ✅
 sbm-recipes-spring-cloud     —  10 tests, 1 env failure ✅
-sbm-recipes-boot-upgrade     — 184 tests, 4 skipped ✅  ← just landed
+sbm-recipes-boot-upgrade     — 184 tests, 4 skipped ✅
+sbm-recipes-spring-framework —  17 tests, 4 skipped ✅  ← just landed
 ```
 
 The sbm-core/sbm-recipes-spring-cloud env failures that surface in this sandbox
@@ -57,8 +58,7 @@ same drift and will need the same one-line alignment when activated.
 ## Inactive modules (commented out in root pom — activate one at a time)
 
 ```
-sbm-recipes-spring-framework  ← NEXT
-sbm-recipes-mule-to-boot
+sbm-recipes-mule-to-boot      ← NEXT
 sbm-recipes-jpa
 jaxrs-recipes
 ```
@@ -356,10 +356,27 @@ mvn -pl components/sbm-recipes-boot-upgrade test -Dspring-javaformat.skip=true
 ## Where I left off
 
 - Working tree clean on `claude/issue-6-7/integrate-rewrite-commons`,
-  module `sbm-recipes-boot-upgrade` activated and green.
-- Both fork patches pushed (`70bf438` + `73baedd` on `bump-or-8.80.1`).
-- Next module to activate is `sbm-recipes-spring-framework` (per the
-  inactive-modules list above).
+  modules `sbm-recipes-boot-upgrade` and `sbm-recipes-spring-framework`
+  activated and green.
+- All fork patches pushed (`70bf438` + `73baedd` on `bump-or-8.80.1`).
+- Next module to activate is `sbm-recipes-mule-to-boot`.
+
+### Notes from sbm-recipes-spring-framework activation (this session)
+
+- Pom had two missing version declarations (`maven-invoker`,
+  `recipe-test-support`) — pinned with existing properties / `${project.version}`.
+- Imports adapted for relocated launcher types
+  (`ProjectResource`/`ProjectResourceSet` → `org.springframework.rewrite.resource`,
+  `ProjectResourceFinder` → `...resource.finder`,
+  `LinuxWindowsPathUnifier` → `...rewrite.utils`).
+- `BuildFile.getClasspath()` now requires a `Scope` argument under OR 8.80.1.
+- `SpringBootApplicationPropertiesResourceListFilter` was renamed to
+  `...ListFinder` in sbm-support-boot.
+- `ImportSpringXmlConfigXmlToJavaConfigurationActionTest`: same
+  TestProjectContext safety-guard pattern as elsewhere — moved
+  `./fake/projects/...` projectRoot under `target/`, switched
+  `Path.of(".")` assertion to `ctx.getProjectRootDirectory()`.
+- ArchUnit drift fix (same as spring-cloud / boot-upgrade copies).
 
 ## Known recurring patterns to watch for in remaining modules
 
