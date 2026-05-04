@@ -15,8 +15,9 @@
  */
 package org.springframework.sbm.project.resource.filter;
 
+import org.springframework.rewrite.resource.ProjectResourceSet;
 import org.springframework.rewrite.resource.RewriteSourceFileHolder;
-import org.springframework.sbm.project.resource.ProjectResourceSet;
+import org.springframework.rewrite.resource.finder.ProjectResourceFinder;
 
 import java.util.List;
 import java.util.stream.Collectors;

@@ -16,7 +16,7 @@
 package org.springframework.sbm.actions.spring.xml.include;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
-import org.springframework.sbm.utils.LinuxWindowsPathUnifier;
+import org.springframework.rewrite.utils.LinuxWindowsPathUnifier;
 import org.springframework.sbm.engine.recipe.AbstractAction;
 import org.springframework.sbm.build.MultiModuleApplicationNotSupportedException;
 import org.springframework.sbm.engine.context.ProjectContext;
@@ -95,7 +95,7 @@ public class ImportSpringXmlConfigAction extends AbstractAction {
         for (Path cpr : classpathRoots) {
             if (absolutePath.startsWith(cpr)) {
                 Path relativePath = cpr.relativize(absolutePath);
-                return new LinuxWindowsPathUnifier().unifyPath(relativePath.toString());
+                return LinuxWindowsPathUnifier.unifiedPathString(relativePath.toString());
             }
         }
         throw new RuntimeException(String.format("Absolute path '%s' is not contained in any classpath root", absolutePath));

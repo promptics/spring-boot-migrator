@@ -17,7 +17,7 @@ package org.springframework.sbm.actions.spring.xml.migration;
 
 import com.squareup.javapoet.*;
 import org.springframework.sbm.boot.properties.api.SpringBootApplicationProperties;
-import org.springframework.sbm.boot.properties.search.SpringBootApplicationPropertiesResourceListFilter;
+import org.springframework.sbm.boot.properties.search.SpringBootApplicationPropertiesResourceListFinder;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.FactoryBean;
@@ -121,7 +121,7 @@ public class BeanMethodFactory {
     }
 
     private void movePropertiesToApplicationPropertiesFile(MigrationContext migrationContext) {
-        List<SpringBootApplicationProperties> applicationProperties = migrationContext.getProjectContext().search(new SpringBootApplicationPropertiesResourceListFilter());
+        List<SpringBootApplicationProperties> applicationProperties = migrationContext.getProjectContext().search(new SpringBootApplicationPropertiesResourceListFinder());
         migrationContext.getPropertyFiles().stream()
                 .flatMap(pf -> pf.getProperties().values().stream())
                 .forEach(p -> applicationProperties.get(0).setProperty(p.getKey().toString(), p.getValue().toString()));
