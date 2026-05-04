@@ -15,6 +15,7 @@
  */
 package org.springframework.sbm.actions.spring.xml.migration;
 
+import org.openrewrite.maven.tree.Scope;
 import org.springframework.sbm.engine.context.ProjectContext;
 import org.springframework.sbm.build.api.BuildFile;
 import org.springframework.stereotype.Component;
@@ -23,6 +24,7 @@ import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLClassLoader;
 import java.nio.file.Path;
+import java.util.Collection;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -31,7 +33,7 @@ public class MigrationContextFactory {
 
     MigrationContext createMigrationContext(ProjectContext context) {
         BuildFile buildFile = context.getBuildFile();
-        List<Path> classpath = buildFile.getClasspath();
+        Collection<Path> classpath = buildFile.getClasspath(Scope.Compile);
         ClassLoader classLoader = createClassLoader(classpath);
         MigrationContext migrationContext = new MigrationContext(context, classLoader);
         return migrationContext;
@@ -45,14 +47,14 @@ public class MigrationContextFactory {
      *
      * @param classpath to provide
      */
-    private ClassLoader createClassLoader(List<Path> classpath) {
+    private ClassLoader createClassLoader(Collection<Path> classpath) {
         URL[] classpathUrls = createUrlsFromClasspath(classpath);
         ClassLoader contextClassLoader = Thread.currentThread().getContextClassLoader();
         URLClassLoader classLoader = new URLClassLoader("SBMCustomClassLoader", classpathUrls, contextClassLoader/*ClassLoader.getPlatformClassLoader()*/);
         return classLoader;
     }
 
-    private URL[] createUrlsFromClasspath(List<Path> classpath) {
+    private URL[] createUrlsFromClasspath(Collection<Path> classpath) {
         return classpath
                 .stream()
                 .map(path -> {
