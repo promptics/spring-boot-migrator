@@ -63,7 +63,7 @@ public class MuleToJavaDSLDBSelectTest extends JavaDSLActionBaseTest {
             assertThat(listOfImportedArtifacts).contains("spring-boot-starter-jdbc");
             assertThat(projectContext.getProjectJavaSources().list()).hasSize(1);
             assertThat(getGeneratedJavaFile()).isEqualTo(
-                    "package com.example.javadsl;\n" + "import org.springframework.context.annotation.Bean;\n" + "import org.springframework.context.annotation.Configuration;\n" + "import org.springframework.integration.dsl.IntegrationFlow;\n" + "import org.springframework.integration.dsl.IntegrationFlows;\n" + "import org.springframework.integration.handler.LoggingHandler;\n" + "import org.springframework.integration.http.dsl.Http;\n" + "\n" + "@Configuration\n" + "public class FlowConfigurations {\n" + "    @Bean\n" + "    IntegrationFlow dbFlow(org.springframework.jdbc.core.JdbcTemplate jdbcTemplate) {\n" + "        return IntegrationFlows.from(Http.inboundGateway(\"/\")).handle((p, h) -> p)\n" + "                .log(LoggingHandler.Level.INFO)\n" + "// TODO: substitute expression language with appropriate java code \n" + "// TODO: The datatype might not be LinkedMultiValueMap please substitute the right type for payload\n" + "                .<LinkedMultiValueMap<String, String>>handle((p, h) ->\n" + "                        jdbcTemplate.queryForList(\n" + "                                \"SELECT * FROM STUDENTS\"))\n" + "                .get();\n" + "    }\n" + "}");
+                    "package com.example.javadsl;\n" + "\n" + "import org.springframework.context.annotation.Bean;\n" + "import org.springframework.context.annotation.Configuration;\n" + "import org.springframework.integration.dsl.IntegrationFlow;\n" + "import org.springframework.integration.dsl.IntegrationFlows;\n" + "import org.springframework.integration.handler.LoggingHandler;\n" + "import org.springframework.integration.http.dsl.Http;\n" + "\n" + "@Configuration\n" + "public class FlowConfigurations {\n" + "    @Bean\n" + "    IntegrationFlow dbFlow(org.springframework.jdbc.core.JdbcTemplate jdbcTemplate) {\n" + "        return IntegrationFlows.from(Http.inboundGateway(\"/\")).handle((p, h) -> p)\n" + "                .log(LoggingHandler.Level.INFO)\n" + "// TODO: substitute expression language with appropriate java code \n" + "// TODO: The datatype might not be LinkedMultiValueMap please substitute the right type for payload\n" + "                .<LinkedMultiValueMap<String, String>>handle((p, h) ->\n" + "                        jdbcTemplate.queryForList(\n" + "                                \"SELECT * FROM STUDENTS\"))\n" + "                .get();\n" + "    }\n" + "}");
         });
     }
 
@@ -106,7 +106,7 @@ public class MuleToJavaDSLDBSelectTest extends JavaDSLActionBaseTest {
                                @Configuration
                                public class FlowConfigurations {
                                    @Bean
-                                   IntegrationFlow dbFlow(JdbcTemplate jdbcTemplate) {
+                                   IntegrationFlow dbFlow(org.springframework.jdbc.core.JdbcTemplate jdbcTemplate) {
                                        return IntegrationFlows.from(Http.inboundGateway("/")).handle((p, h) -> p)
                                                .log(LoggingHandler.Level.INFO)
                                // TODO: substitute expression language with appropriate java code\s
@@ -161,7 +161,7 @@ public class MuleToJavaDSLDBSelectTest extends JavaDSLActionBaseTest {
                            @Configuration
                            public class FlowConfigurations {
                                @Bean
-                               IntegrationFlow dbFlow(JdbcTemplate jdbcTemplate) {
+                               IntegrationFlow dbFlow(org.springframework.jdbc.core.JdbcTemplate jdbcTemplate) {
                                    return IntegrationFlows.from(Http.inboundGateway("/db")).handle((p, h) -> p)
                                            .log(LoggingHandler.Level.INFO)
                            // TODO: substitute expression language with appropriate java code\s
