@@ -106,6 +106,9 @@ class RedeclaredDependenciesFinderTest {
                     <artifactId>parent</artifactId>
                     <version>1.0.0</version>
                     <packaging>pom</packaging>
+                    <modules>
+                        <module>module1</module>
+                    </modules>
                     <dependencyManagement>
                         <dependencies>
                             <dependency>
@@ -168,6 +171,9 @@ class RedeclaredDependenciesFinderTest {
                     <artifactId>bom</artifactId>
                     <version>1.0.0</version>
                     <packaging>pom</packaging>
+                    <modules>
+                        <module>module1</module>
+                    </modules>
                     <dependencyManagement>
                         <dependencies>
                             <dependency>
@@ -262,7 +268,7 @@ class RedeclaredDependenciesFinderTest {
                 """;
 
         ProjectContext context = TestProjectContext.buildProjectContext()
-                .withMavenBuildFileSource("module1", module1PomXml)
+                .withMavenBuildFileSource("", module1PomXml)
                 .build();
 
         RedeclaredDependenciesFinder finder = new RedeclaredDependenciesFinder(Set.of("javax.el:javax.el-api", "javax.validation:validation-api"));
