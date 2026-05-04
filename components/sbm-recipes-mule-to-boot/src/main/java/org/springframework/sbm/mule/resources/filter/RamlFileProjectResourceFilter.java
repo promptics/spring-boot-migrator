@@ -18,9 +18,15 @@ package org.springframework.sbm.mule.resources.filter;
 import org.springframework.sbm.common.api.TextResource.TextSource;
 import org.springframework.rewrite.resource.ProjectResourceSet;
 import org.springframework.rewrite.resource.finder.ProjectResourceFinder;
+import org.openrewrite.marker.Markers;
 import org.openrewrite.text.PlainText;
 
+import java.io.IOException;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.util.Collections;
 import java.util.List;
+import java.util.UUID;
 import java.util.stream.Collectors;
 
 public class RamlFileProjectResourceFilter implements ProjectResourceFinder<List<TextSource>> {
@@ -28,8 +34,29 @@ public class RamlFileProjectResourceFilter implements ProjectResourceFinder<List
     public List<TextSource> apply(ProjectResourceSet projectResourceSet) {
         return projectResourceSet.stream()
                 .filter(r -> r.getAbsolutePath().toString().endsWith(".raml"))
-                .filter(r -> PlainText.class.isInstance(r.getSourceFile()))
-                .map(r -> new TextSource(r.getAbsoluteProjectDir(), (PlainText)r.getSourceFile()))
+                .map(r -> {
+                    if (PlainText.class.isInstance(r.getSourceFile())) {
+                        return new TextSource(r.getAbsoluteProjectDir(), (PlainText) r.getSourceFile());
+                    }
+                    // OR 8.80.1 wraps unknown extensions (.raml) as Quark; rebuild a PlainText
+                    // by reading the file content from disk so the action can process it.
+                    try {
+                        String text = Files.readString(r.getAbsolutePath(), StandardCharsets.UTF_8);
+                        PlainText plainText = new PlainText(
+                                UUID.randomUUID(),
+                                r.getAbsoluteProjectDir().relativize(r.getAbsolutePath()),
+                                Markers.EMPTY,
+                                StandardCharsets.UTF_8.name(),
+                                false,
+                                null,
+                                null,
+                                text,
+                                Collections.emptyList());
+                        return new TextSource(r.getAbsoluteProjectDir(), plainText);
+                    } catch (IOException e) {
+                        throw new RuntimeException("Could not read raml file " + r.getAbsolutePath(), e);
+                    }
+                })
                 .collect(Collectors.toList());
     }
 }
