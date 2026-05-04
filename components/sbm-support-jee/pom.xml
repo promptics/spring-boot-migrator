@@ -74,6 +74,12 @@
             <scope>test</scope>
         </dependency>
         <dependency>
+            <groupId>org.springframework.sbm</groupId>
+            <artifactId>test-helper</artifactId>
+            <version>0.15.2-SNAPSHOT</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
             <groupId>com.tngtech.archunit</groupId>
             <artifactId>archunit-junit5</artifactId>
             <version>1.0.1</version>
