@@ -84,6 +84,9 @@ rewrite-recipe-bom:       not yet adopted (#7)
 ## Commits added in the most recent session (tail of PR #16, newest first)
 
 ```
+f1ba3d0d docs: explain jaxrs-recipes activation status in root pom comment
+5732ff13 build(jaxrs-recipes): start OR 8.80.1 alignment (compile-only, module not yet activated)
+8969d18f docs: refresh HANDOVER.md after sbm-recipes-mule-to-boot activation
 bc414b5e build: re-activate components/sbm-recipes-mule-to-boot in the reactor
 22094d9b test(sbm-{support-jee,support-weblogic,recipes-jee-to-boot}): align ArchUnit ExecutionContext exceptions with sbm-core
 dd52d87b test(sbm-recipes-mule-to-boot): adapt 4 fixtures to OR 8.80.1 import/format drift
@@ -399,13 +402,47 @@ still omitted those exceptions. Aligned the per-module copies with sbm-core in
 a test-scope `test-helper` dep to `sbm-support-jee` (the other two already had it
 transitively via `recipe-test-support`).
 
-### Next module to activate
+### Next module to activate — jaxrs-recipes (prep landed, NOT yet activated)
 
-`jaxrs-recipes` (35 test classes, smaller). Pom currently pins
-`openrewrite.version=8.29.0` — needs alignment with the rest of the reactor's
-8.80.1. Same compile/test imports adaptations that sbm-recipes-spring-framework
-needed will likely apply (relocated launcher types, `BuildFile.getClasspath(Scope)`
-arity change, etc.).
+Compile-only prep work is on the branch (`5732ff13`). What's done:
+
+- Pinned `openrewrite` 8.29.0 → 8.80.1, `openrewrite.spring` 4.32.0 → 5.0.5,
+  `spring-boot` 3.3.1 → 3.1.2 to match reactor.
+- Bumped lombok 1.18.30 → 1.18.34 (the spring-boot BOM imports 1.18.28 which
+  hits the `JCImport.qualid` NoSuchFieldError under JDK 21). Added an explicit
+  `provided`-scope lombok dep so the BOM doesn't override.
+- Excluded `spring-rewrite-commons-plugin-invoker-polyglot` test dep — it
+  transitively depends on the gradle plugin invoker, which depends on
+  `gradle-tooling-api 8.4` from `repo.gradle.org` (sandbox can't reach it).
+  Commented out the only consumer (`JaxRsThroughAdapterTest$WithRewritePlugin`).
+- Disambiguated `JavaTemplate.Builder` vs `Recipe.Builder` in
+  `ReplaceResponseEntityBuilder` (OR 8.80.1 introduced `Recipe.Builder` which
+  was shadowing the existing `JavaTemplate.Builder` import).
+
+What's left (138 tests, 2F + 110E + 13 skipped):
+
+- **Dependency 7-arg ctor**: ~100 errors are `NoSuchMethod 'void
+  org.openrewrite.maven.tree.Dependency.<init>(GroupArtifactVersion, String,
+  String, String, List, String, Map)'`. Same OR 8.80.1 API breakage adapted
+  in sbm-core (see `MavenRepository`/`Dependency`/`ChangePackaging` ctor
+  changes in PR #16 highlights). Recipes/actions/tests in jaxrs-recipes still
+  use the older arity.
+- **UserInteractions two-bean conflict**: `MigrateJaxWsRecipe` declares a
+  `UserInteractions` injection but the test context exposes both
+  `userInteractions` and `userInteractionsDummy`. The
+  `SpringBeanProvider.run` register-if-missing fix in sbm-core (commit
+  `92e76a33` from earlier session) doesn't yet handle the case where two
+  beans of the same type are present. Likely fix: prefer the non-dummy
+  variant via `@Primary` or qualifier.
+- After those clear, the standard ArchUnit
+  `ControlledInstantiationOfExecutionContextTest` exception-list alignment
+  (per the recurring pattern documented above for sbm-support-jee/weblogic/
+  jee-to-boot/spring-cloud/boot-upgrade/spring-framework/mule-to-boot)
+  will need to land on jaxrs-recipes' copy.
+
+Once the module is green, uncomment `<module>components/jaxrs-recipes</module>`
+in root `pom.xml` (commented placeholder is already in place at line 66) and
+commit as `build: re-activate components/jaxrs-recipes in the reactor`.
 
 ### Notes from sbm-recipes-spring-framework activation (this session)
 
