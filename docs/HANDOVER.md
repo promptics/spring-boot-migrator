@@ -18,9 +18,8 @@ PR.
 ```
 SBM:                    claude/issue-6-7/integrate-rewrite-commons    (PR #16, draft)
                         tip pushed to origin (see git log)
-spring-rewrite-commons: origin/bump-or-8.80.1 tip a7e72f7
-                        + 2 LOCAL patches in docs/patches/spring-rewrite-commons/
-                        (synthetic-input + nested-module fix). Push needed.
+spring-rewrite-commons: origin/bump-or-8.80.1 tip 73baedd
+                        (synthetic-input + nested-module fix landed)
 ```
 
 ## Active reactor (9 modules, all green) ✅
@@ -110,8 +109,8 @@ HANDOVER versions or `git log` for the full list.)
 ## spring-rewrite-commons fork patches (`origin/bump-or-8.80.1` on `promptics/spring-rewrite-commons`)
 
 ```
-80b74fc fix(maven): set reactorProjects on every module + filter pathsToOtherMavenProjects to descendants only  ← LOCAL, NEEDS PUSH
-2e31a58 fix(parser): mark resource inputs synthetic so PropertiesParser accepts spring.factories                ← LOCAL, NEEDS PUSH
+73baedd fix(maven): set reactorProjects on every module + filter pathsToOtherMavenProjects to descendants only  ← pushed
+70bf438 fix(parser): mark resource inputs synthetic so PropertiesParser accepts spring.factories                ← pushed
 a7e72f7 fix(parser): route spring.factories through PropertiesParser                                            ← pushed
 a223201 fix(maven): skip classpath collection for unparseable sources                                            ← pushed
 66eeaaf fix(maven): detect multi-module via <modules> when packaging is inherited                                ← pushed
@@ -121,21 +120,8 @@ fedfaf4 fix(test): adapt 4 launcher/polyglot test assertions to OR/Maven contrac
 d3f3313 test(gradle): update brittle plugin-count literal 9 → 10 (not OR-related)
 ```
 
-The 2 local commits live as patches at
-`docs/patches/spring-rewrite-commons/0001-...patch` and `0002-...patch`. They
-are required for `sbm-recipes-boot-upgrade` to be green in CI / on a fresh
-clone. Push from a host with GitHub creds:
-
-```bash
-git clone https://github.com/promptics/spring-rewrite-commons.git
-cd spring-rewrite-commons && git checkout bump-or-8.80.1
-git am /path/to/docs/patches/spring-rewrite-commons/0001-...patch
-git am /path/to/docs/patches/spring-rewrite-commons/0002-...patch
-git push origin bump-or-8.80.1
-```
-
-`a7e72f7` + `2e31a58` together unblock cluster 1/3/5 in `sbm-recipes-boot-upgrade`.
-`80b74fc` fixes the nested-module duplicate-resource bug
+`a7e72f7` + `70bf438` together unblock cluster 1/3/5 in `sbm-recipes-boot-upgrade`.
+`73baedd` fixes the nested-module duplicate-resource bug
 (`CreateAutoconfigurationActionTest.moduleInsideModuleMavenSetup`) by setting
 `reactorProjects` on every module (was root-only, leaving non-root modules
 blind to sub-modules) and restricting `pathsToOtherMavenProjects` to strict
@@ -363,9 +349,6 @@ mvn -pl components/sbm-recipes-boot-upgrade test -Dspring-javaformat.skip=true
 
 ### Open work
 
-- **2 fork patches still need pushing** (`docs/patches/spring-rewrite-commons/0001-...patch`,
-  `0002-...patch`). Until they land on `bump-or-8.80.1`, CI/fresh clones
-  build the module against an unfixed launcher and hit the original failures.
 - Original `testcode/spring-boot-2.4-to-2.5-example/` fixture is now unused
   by `Boot_24_25_UpdateDependenciesRecipeTest` (post-migration). Other tests
   may still reference it — check before removing in a follow-up.
@@ -374,14 +357,9 @@ mvn -pl components/sbm-recipes-boot-upgrade test -Dspring-javaformat.skip=true
 
 - Working tree clean on `claude/issue-6-7/integrate-rewrite-commons`,
   module `sbm-recipes-boot-upgrade` activated and green.
-- Local `~/.m2` has the synthetic + nested-module-fix launcher
-  (`spring-rewrite-commons-launcher 0.1.0-SNAPSHOT` rebuilt from
-  `/tmp/src/spring-rewrite-commons` on top of `a7e72f7`).
-- Next step: push the 2 patches in `docs/patches/spring-rewrite-commons/`
-  to `promptics/spring-rewrite-commons bump-or-8.80.1` from a host with
-  GitHub creds.
-- After the fork pushes, next module to activate is
-  `sbm-recipes-spring-framework` (per the inactive-modules list above).
+- Both fork patches pushed (`70bf438` + `73baedd` on `bump-or-8.80.1`).
+- Next module to activate is `sbm-recipes-spring-framework` (per the
+  inactive-modules list above).
 
 ## Known recurring patterns to watch for in remaining modules
 
