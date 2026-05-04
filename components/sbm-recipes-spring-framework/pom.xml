@@ -73,6 +73,7 @@
         <dependency>
             <groupId>org.apache.maven.shared</groupId>
             <artifactId>maven-invoker</artifactId>
+            <version>${maven-invoker.version}</version>
             <scope>compile</scope>
         </dependency>
         <dependency>
@@ -87,6 +88,7 @@
         <dependency>
             <groupId>org.springframework.sbm</groupId>
             <artifactId>recipe-test-support</artifactId>
+            <version>${project.version}</version>
             <scope>test</scope>
         </dependency>
     </dependencies>
