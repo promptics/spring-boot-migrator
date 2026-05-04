@@ -189,7 +189,7 @@ public class ReplaceResponseEntityBuilder extends Recipe {
                             MarkWithTemplate marker = m.getMarkers().findFirst(MarkWithTemplate.class).orElse(null);
                             if (marker != null) {
                                 m = VisitorUtils.removeMarker(m, marker);
-                                Builder t = JavaTemplate.builder("#{any(org.springframework.http.ResponseEntity.HeadersBuilder)}.body(#{})");
+                                JavaTemplate.Builder t = JavaTemplate.builder("#{any(org.springframework.http.ResponseEntity.HeadersBuilder)}.body(#{})");
                                 m = t.build().apply(v.getCursor(), m.getCoordinates().replace(), m.getSelect(), marker.getTemplate());
                             }
                             return m.withMarkers(m.getMarkers().computeByType(new MarkReturnType(Tree.randomId(), this, "ResponseEntity", "org.springframework.http.ResponseEntity"), (o1, o2) -> o2));
