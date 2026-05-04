@@ -1457,7 +1457,7 @@
             condition:
               type: org.springframework.sbm.build.migration.conditions.AnyEffectiveDependencyExistMatchingRegex
               dependencies:
-                - 'com\.hazelcast\:hazelcast-hibernate\:.*'
+                - 'com\.hazelcast\:hazelcast-hibernate.*\:.*'
 
           change: |-
             Spring Boot does not depend on Hazelcast Hibernate so it need not have an opinion about its version.
@@ -1467,7 +1467,7 @@
 
           affected: |-
             Actually, we don't know if the scanned application is really affected by this change.
-            But we found a dependency matching regex `com\.hazelcast\:hazelcast-hibernate\:.*`.
+            But we found a dependency matching regex `com\.hazelcast\:hazelcast-hibernate.*\:.*`.
             This indicates that the scanned application might be affected.
           remediation:
             description: |-

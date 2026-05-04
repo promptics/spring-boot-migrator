@@ -25,10 +25,13 @@ class HazelcastHibernateRemovedReportSectionTest {
     @Test
     @DisplayName("Hazelcast Hibernate Removed should render")
     void withSingleModuleApplicationShouldRender() {
+         // hazelcast-hibernate (bare) was never published to Maven Central;
+         // hazelcast-hibernate5 is the real Spring Boot 2.x dependency that
+         // was removed in 3.0.
          ProjectContext context = TestProjectContext
                          .buildProjectContext()
                          .withSpringBootParentOf("2.7.5")
-                         .withBuildFileHavingDependencies("com.hazelcast:hazelcast-hibernate:3.8.2")
+                         .withBuildFileHavingDependencies("com.hazelcast:hazelcast-hibernate5:1.3.2")
                          .build();
 
                  SpringBootUpgradeReportTestSupport.generatedSection("Hazelcast Hibernate Removed")
@@ -44,7 +47,7 @@ class HazelcastHibernateRemovedReportSectionTest {
                                           
                                           ==== Why is the application affected
                                           Actually, we don't know if the scanned application is really affected by this change.
-                                          But we found a dependency matching regex `com\\.hazelcast\\:hazelcast-hibernate\\:.*`.
+                                          But we found a dependency matching regex `com\\.hazelcast\\:hazelcast-hibernate.*\\:.*`.
                                           This indicates that the scanned application might be affected.
                                           
                                           ==== Remediation
