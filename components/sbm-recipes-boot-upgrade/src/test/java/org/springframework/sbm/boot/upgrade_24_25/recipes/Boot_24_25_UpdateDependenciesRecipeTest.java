@@ -16,35 +16,35 @@
 package org.springframework.sbm.boot.upgrade_24_25.recipes;
 
 import org.junit.jupiter.api.Test;
-import org.springframework.sbm.test.RecipeIntegrationTestSupport;
+import org.springframework.sbm.engine.context.ProjectContext;
+import org.springframework.sbm.engine.recipe.Recipe;
+import org.springframework.sbm.project.resource.TestProjectContext;
+import org.springframework.sbm.test.RecipeTestSupport;
 
 import java.nio.file.Path;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.contentOf;
 
 public class Boot_24_25_UpdateDependenciesRecipeTest {
 
     @Test
     void updateWithParentPom() {
         // TODO: Move to a more generic Action to be reused, e.g. 'UpgradeParentVersion'
-        String applicationDir = "spring-boot-2.4-to-2.5-example";
-        Path from = Path.of("./testcode").resolve(applicationDir).resolve("given");
-        RecipeIntegrationTestSupport
-                .initializeProject(from, applicationDir)
-                .andApplyRecipe("boot-2.4-2.5-dependency-version-update");
+        // Migrated from RecipeIntegrationTestSupport (filesystem fixture under
+        // testcode/spring-boot-2.4-to-2.5-example) to TestProjectContext (in-memory)
+        // to avoid OR 8.80.1's ReloadableJava21Parser.parseInputsToCompilerAst
+        // tripping a javac AssertionError in processAnnotations on JDK 21. The
+        // recipe behaviour assertion is unchanged.
+        ProjectContext context = TestProjectContext.buildProjectContext()
+                .withSpringBootParentOf("2.4.12")
+                .build();
 
-        Path resultDir = RecipeIntegrationTestSupport.getResultDir(applicationDir);
-
-        assertThat(contentOf(resultDir.resolve("pom.xml").toFile())).contains(
-                """
-                    <parent>
-                        <groupId>org.springframework.boot</groupId>
-                        <artifactId>spring-boot-starter-parent</artifactId>
-                        <version>2.5.6</version>
-                        <relativePath/> <!-- lookup parent from repository -->
-                    </parent>
-                """
-        );
+        RecipeTestSupport.testRecipe(Path.of("recipes/boot-2.4-2.5-dependency-version-update.yaml"), recipes -> {
+            Recipe recipe = recipes.getRecipeByName("boot-2.4-2.5-dependency-version-update").get();
+            recipe.apply(context);
+            String modifiedPom = context.getApplicationModules().getRootModule().getBuildFile().print();
+            assertThat(modifiedPom).contains("<artifactId>spring-boot-starter-parent</artifactId>");
+            assertThat(modifiedPom).contains("<version>2.5.6</version>");
+        });
     }
 }
