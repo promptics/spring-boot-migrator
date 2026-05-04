@@ -62,6 +62,7 @@
         <module>components/sbm-recipes-spring-cloud</module>
         <module>components/sbm-recipes-boot-upgrade</module>
         <module>components/sbm-recipes-spring-framework</module>
+        <module>components/sbm-recipes-mule-to-boot</module>
         <!-- Activate one at a time. Next up:
         -->
 
