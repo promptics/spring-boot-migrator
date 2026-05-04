@@ -381,7 +381,10 @@ public class OpenRewriteMavenBuildFileTest {
     */
     @Test
     @Tag("integration")
-    @Disabled("Disabled after upgrade to 7.25.0 because org/jboss/logging/jboss-logging/3.3.2.Final/jboss-logging-3.3.2.Final.jar is sometimes retreived and sometimes iot isn't")
+    @Disabled("Asserts on a hardcoded list of ~80 transitive jar paths from a fixture pom. "
+            + "Brittle to maven-central availability and to dependency-resolution changes; "
+            + "fails under OR 8.80.1 with a different set of resolved jars than the literal expects. "
+            + "Independent of OR version. Tracked in #19.")
     void testResolvedDependenciesWithPomTypeDependency() {
         String pomXml =
                 "<project xmlns=\"http://maven.apache.org/POM/4.0.0\"\n" +

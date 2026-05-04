@@ -308,7 +308,8 @@ class OpenRewriteTypeTest {
                         return IntegrationFlows.from(Http.inboundChannelAdapter("/test")).handle((p, h) -> p)
                                 .log(LoggingHandler.Level.INFO)
                                 .get();
-                    }}"""
+                    }
+                }"""
         );
     }
 
@@ -384,7 +385,8 @@ class OpenRewriteTypeTest {
                         return IntegrationFlows.from(Http.inboundChannelAdapter("/test")).handle((p, h) -> p)
                                 .log(LoggingHandler.Level.INFO)
                                 .get();
-                    }}"""
+                    }
+                }"""
         );
     }
     
@@ -405,7 +407,8 @@ class OpenRewriteTypeTest {
                         return IntegrationFlows.from(Http.inboundChannelAdapter("/test")).handle((p, h) -> p)
                                 .log(LoggingHandler.Level.INFO)
                                 .get();
-                    }}""";
+                    }
+                }""";
 
         ProjectContext context = TestProjectContext.buildProjectContext()
                 .withBuildFileHavingDependencies(
