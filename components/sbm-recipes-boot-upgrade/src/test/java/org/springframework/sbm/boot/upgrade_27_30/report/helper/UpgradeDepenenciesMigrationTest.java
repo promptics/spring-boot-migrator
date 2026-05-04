@@ -59,11 +59,15 @@ public class UpgradeDepenenciesMigrationTest {
                             <version>2.7.5</version>
                             <relativePath/>
                         </parent>
-                        
+
                         <groupId>com.example</groupId>
                         <artifactId>dummy-root</artifactId>
                         <version>0.1.0-SNAPSHOT</version>
                         <packaging>jar</packaging>
+                        <properties>
+                             <maven.compiler.target>17</maven.compiler.target>
+                             <maven.compiler.source>17</maven.compiler.source>
+                        </properties>
                         <dependencies>
                             <dependency>
                                 <groupId>org.ehcache</groupId>
@@ -72,7 +76,7 @@ public class UpgradeDepenenciesMigrationTest {
                                 <classifier>jakarta</classifier>
                             </dependency>
                         </dependencies>
-                        
+
                     </project>
                     """
             );

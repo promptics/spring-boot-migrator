@@ -21,7 +21,5 @@ spring:
   sql.init.mode: mode1
   sql.init.platform: pls
   sql.init.schema-locations: table1
-  sql.init.password: password2
-  sql.init.username: username2
   sql.init.separator: k
   sql.init.encoding: UTF-8

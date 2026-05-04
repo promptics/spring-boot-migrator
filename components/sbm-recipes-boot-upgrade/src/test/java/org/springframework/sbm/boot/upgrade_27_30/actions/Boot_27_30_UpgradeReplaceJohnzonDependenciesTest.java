@@ -52,15 +52,17 @@ public class Boot_27_30_UpgradeReplaceJohnzonDependenciesTest {
             "\n";
 
 
+    // OR 8.80.1 preserves original whitespace fidelity; the input fixture above
+    // uses 3-space indent inside <parent> and a 1-space indent on </parent>.
     private static final String SPRING_MANAGED_DEPENDENCY_EXPECTED_POM = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n" +
             "<project xmlns=\"http://maven.apache.org/POM/4.0.0\" xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" xsi:schemaLocation=\"http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd\">\n" +
             "    <modelVersion>4.0.0</modelVersion>\n" +
             "    <parent>\n" +
-            "        <groupId>org.springframework.boot</groupId>\n" +
-            "        <artifactId>spring-boot-starter-parent</artifactId>\n" +
-            "        <version>2.7.1</version>\n" +
-            "        <relativePath/>\n" +
-            "    </parent>\n" +
+            "       <groupId>org.springframework.boot</groupId>\n" +
+            "       <artifactId>spring-boot-starter-parent</artifactId>\n" +
+            "       <version>2.7.1</version>\n" +
+            "       <relativePath/>\n" +
+            "     </parent>\n" +
             "    <groupId>com.example</groupId>\n" +
             "    <artifactId>dummy-root</artifactId>\n" +
             "    <version>0.1.0-SNAPSHOT</version>\n" +
@@ -78,13 +80,20 @@ public class Boot_27_30_UpgradeReplaceJohnzonDependenciesTest {
             "\n";
 
 
+    // OR 8.80.1 preserves the synthetic <properties> block that
+    // TestProjectContext's default pom emits (maven.compiler.target/source).
     private static final String EXPECTED_POM = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n" +
             "<project xmlns=\"http://maven.apache.org/POM/4.0.0\" xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" xsi:schemaLocation=\"http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd\">\n" +
             "    <modelVersion>4.0.0</modelVersion>\n" +
+            "\n" +
             "    <groupId>com.example</groupId>\n" +
             "    <artifactId>dummy-root</artifactId>\n" +
             "    <version>0.1.0-SNAPSHOT</version>\n" +
             "    <packaging>jar</packaging>\n" +
+            "    <properties>\n" +
+            "         <maven.compiler.target>17</maven.compiler.target>\n" +
+            "         <maven.compiler.source>17</maven.compiler.source>\n" +
+            "    </properties>\n" +
             "    <dependencies>\n" +
             "        <dependency>\n" +
             "            <groupId>org.apache.johnzon</groupId>\n" +
