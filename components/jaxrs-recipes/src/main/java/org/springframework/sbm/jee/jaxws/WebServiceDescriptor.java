@@ -133,7 +133,7 @@ class WebServiceDescriptor {
 
         JavaSource javaSource = generateEndpointSource(module, ops);
 
-        javaSource.apply(new OrderImports(false), new AutoFormat());
+        javaSource.apply(new OrderImports(false, null), new AutoFormat(null));
 
         return javaSource;
     }

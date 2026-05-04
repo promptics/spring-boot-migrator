@@ -158,7 +158,7 @@ class MigrateEjbDeploymentDescriptorTest {
                                 
                 @Remote(com.example.jee.ejb.stateless.local.deploymentdescriptor.RemoteInterface.class)
                 @Stateless(name = "RemoteInterfaceView")
-                public class RemoteInterfaceView implements RemoteInterface {}
+                public class RemoteInterfaceView implements RemoteInterface{}
                 """;
 
         String deploymentDescriptorXml = """
@@ -211,7 +211,7 @@ class MigrateEjbDeploymentDescriptorTest {
                 "\n" +
                 "@Local(" + LOCAL_EJB_INTERFACE + ".class)\n" +
                 "@Stateless(name = \"" + EJB_WITH_LOCAL_INTERFACE_NAME + "\")\n" +
-                "public class LocalInterfaceView implements LocalInterface {}";
+                "public class LocalInterfaceView implements LocalInterface{}";
 
         String deploymentDescriptorXml = "<ejb-jar xmlns=\"http://xmlns.jcp.org/xml/ns/javaee\"\n" +
                 "      xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\"\n" +

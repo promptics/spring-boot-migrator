@@ -63,12 +63,7 @@
         <module>components/sbm-recipes-boot-upgrade</module>
         <module>components/sbm-recipes-spring-framework</module>
         <module>components/sbm-recipes-mule-to-boot</module>
-        <!-- Activate one at a time. Next up: jaxrs-recipes
-             (prep work in claude/fix-mule-to-boot-tests-VhHm0: OR 8.80.1 + lombok 1.18.34
-             pinned, polyglot dep excluded, JaxRsThroughAdapterTest$WithRewritePlugin
-             commented; 138 tests still hit Dependency 7-arg-ctor + UserInteractions
-             two-bean wiring issues). -->
-        <!-- <module>components/jaxrs-recipes</module> -->
+        <module>components/jaxrs-recipes</module>
 
     </modules>
 

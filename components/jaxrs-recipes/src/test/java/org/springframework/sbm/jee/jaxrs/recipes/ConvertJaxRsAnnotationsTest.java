@@ -105,8 +105,7 @@ public class ConvertJaxRsAnnotationsTest {
                 import javax.ws.rs.QueryParam;
                 import javax.ws.rs.core.MediaType;
                 import java.util.List;
-                
-                
+
                 @RestController
                 @RequestMapping(value = "movies", produces = {"application/json"})
                 public class MoviesRest {
@@ -171,8 +170,7 @@ public class ConvertJaxRsAnnotationsTest {
                 
                 import org.springframework.web.bind.annotation.RequestMapping;
                 import org.springframework.web.bind.annotation.RestController;
-                
-                
+
                 @RestController
                 @RequestMapping(value = "movies", consumes = "application/x-www-form-urlencoded", produces = "application/json")
                 public class MoviesRest {
@@ -224,8 +222,7 @@ public class ConvertJaxRsAnnotationsTest {
                 
                 import org.springframework.web.bind.annotation.RequestMapping;
                 import org.springframework.web.bind.annotation.RestController;
-                
-                
+
                 @RestController
                 @RequestMapping(value = "movies", consumes = "application/x-www-form-urlencoded")
                 public class MoviesRest {

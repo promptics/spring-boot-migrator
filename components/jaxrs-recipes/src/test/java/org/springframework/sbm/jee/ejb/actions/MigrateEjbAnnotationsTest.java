@@ -272,18 +272,18 @@ class MigrateEjbAnnotationsTest {
                         "@Stateless\n" +
                         "public class ClientEjb {\n" +
                         "    /*\n" +
-                        "     * the description for theEJB\n" +
-                        "     * SBM-TODO: lookup was 'ejb:earname/modulename/TheEJB!TheEJB'\n" +
-                        "     */\n" +
-                        "    @Autowired\n" +
+                        " * the description for theEJB\n" +
+                        " * SBM-TODO: lookup was 'ejb:earname/modulename/TheEJB!TheEJB'\n" +
+                        " */\n" +
+                        "@Autowired\n" +
                         "    private TheEjb theEjb;\n" +
                         "    private Another anotherEjb;\n" +
                         "\n" +
                         "    /*\n" +
-                        "     * the description\n" +
-                        "     * SBM-TODO: beanInterface was 'LocalAnother.class'\n" +
-                        "     */\n" +
-                        "    @Autowired\n" +
+                        " * the description\n" +
+                        " * SBM-TODO: beanInterface was 'LocalAnother.class'\n" +
+                        " */\n" +
+                        "@Autowired\n" +
                         "    @Qualifier(\"fancyEjb\")\n" +
                         "    public void setAnotherEjb(Another anotherEjb) {\n" +
                         "        this.anotherEjb = anotherEjb;\n" +

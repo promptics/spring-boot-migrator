@@ -345,7 +345,7 @@ public class SwapResponseWithResponseEntity extends Recipe {
 
         // #readEntity(..)
         recipeList.add(new RewriteMethodInvocation(RewriteMethodInvocation.methodInvocationMatcher("javax.ws.rs.core.Response readEntity(..)"), (v, m, addImport) -> {
-            JavaTemplate template = JavaTemplate.builder("#{any(org.springframework.http.ResponseEntity)}.getBody())")
+            JavaTemplate template = JavaTemplate.builder("#{any(org.springframework.http.ResponseEntity)}.getBody()")
                     .build();
             v.maybeRemoveImport("java.lang.annotation.Annotation");
             v.maybeRemoveImport("javax.ws.rs.core.GenericType");

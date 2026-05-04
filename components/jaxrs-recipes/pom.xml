@@ -19,9 +19,14 @@
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
 
-    <groupId>org.springframework.sbm</groupId>
+    <parent>
+        <groupId>org.springframework.sbm</groupId>
+        <artifactId>spring-boot-migrator</artifactId>
+        <version>0.15.2-SNAPSHOT</version>
+        <relativePath>../../pom.xml</relativePath>
+    </parent>
+
     <artifactId>jaxrs-recipes</artifactId>
-    <version>0.15.2-SNAPSHOT</version>
     <packaging>jar</packaging>
 
     <properties>
@@ -55,13 +60,6 @@
                 <groupId>org.springframework.boot</groupId>
                 <artifactId>spring-boot-dependencies</artifactId>
                 <version>${spring-boot.version}</version>
-                <type>pom</type>
-                <scope>import</scope>
-            </dependency>
-            <dependency>
-                <groupId>org.openrewrite.recipe</groupId>
-                <artifactId>rewrite-recipe-bom</artifactId>
-                <version>2.14.0</version>
                 <type>pom</type>
                 <scope>import</scope>
             </dependency>
@@ -197,12 +195,6 @@
             <version>0.15.2-SNAPSHOT</version>
             <classifier>tests</classifier>
             <scope>test</scope>
-        </dependency>
-        <dependency>
-            <groupId>org.openrewrite</groupId>
-            <artifactId>rewrite-core</artifactId>
-            <version>${openrewrite.version}</version>
-            <scope>compile</scope>
         </dependency>
         <dependency>
             <groupId>org.openrewrite.recipe</groupId>
