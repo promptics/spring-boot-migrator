@@ -17,13 +17,13 @@ PR.
 
 ```
 SBM:                    claude/issue-6-7/integrate-rewrite-commons    (PR #16, draft)
-                        tip f3a674eb (pushed to origin)
-spring-rewrite-commons: bump-or-8.80.1 (in /tmp/src/spring-rewrite-commons-launcher)
-                        promptics fork, OR 8.80.1, Boot 3.1.x baseline
-                        tip 928e6ae (3 commits AHEAD of origin/bump-or-8.80.1)
+                        tip pushed to origin (see git log)
+spring-rewrite-commons: origin/bump-or-8.80.1 tip a7e72f7
+                        + 2 LOCAL patches in docs/patches/spring-rewrite-commons/
+                        (synthetic-input + nested-module fix). Push needed.
 ```
 
-## Active reactor (8 modules, all green) ✅
+## Active reactor (9 modules, all green) ✅
 
 ```
 spring-boot-migrator         (root)
@@ -35,7 +35,8 @@ sbm-support-boot             — 81 tests, all green ✅
 sbm-support-jee              — 10 tests, 5 pre-existing @Disabled ✅
 sbm-support-weblogic         —  6 tests, all green ✅
 sbm-recipes-jee-to-boot      — 146 tests, 15 pre-existing @Disabled ✅
-sbm-recipes-spring-cloud     —  10 tests, 1 env failure ✅  ← just landed
+sbm-recipes-spring-cloud     —  10 tests, 1 env failure ✅
+sbm-recipes-boot-upgrade     — 184 tests, 4 skipped ✅  ← just landed
 ```
 
 The sbm-core/sbm-recipes-spring-cloud env failures that surface in this sandbox
@@ -57,8 +58,7 @@ same drift and will need the same one-line alignment when activated.
 ## Inactive modules (commented out in root pom — activate one at a time)
 
 ```
-sbm-recipes-boot-upgrade      ← NEXT
-sbm-recipes-spring-framework
+sbm-recipes-spring-framework  ← NEXT
 sbm-recipes-mule-to-boot
 sbm-recipes-jpa
 jaxrs-recipes
@@ -110,24 +110,36 @@ HANDOVER versions or `git log` for the full list.)
 ## spring-rewrite-commons fork patches (`origin/bump-or-8.80.1` on `promptics/spring-rewrite-commons`)
 
 ```
-9b942d7 fix(parser): mark resource inputs synthetic so PropertiesParser accepts spring.factories  ← pushed
-a7e72f7 fix(parser): route spring.factories through PropertiesParser                              ← pushed
-a223201 fix(maven): skip classpath collection for unparseable sources                              ← pushed
-66eeaaf fix(maven): detect multi-module via <modules> when packaging is inherited                  ← pushed
-7ad628b parser: tolerate empty/blank-project resources                                             ← pushed
+80b74fc fix(maven): set reactorProjects on every module + filter pathsToOtherMavenProjects to descendants only  ← LOCAL, NEEDS PUSH
+2e31a58 fix(parser): mark resource inputs synthetic so PropertiesParser accepts spring.factories                ← LOCAL, NEEDS PUSH
+a7e72f7 fix(parser): route spring.factories through PropertiesParser                                            ← pushed
+a223201 fix(maven): skip classpath collection for unparseable sources                                            ← pushed
+66eeaaf fix(maven): detect multi-module via <modules> when packaging is inherited                                ← pushed
+7ad628b parser: tolerate empty/blank-project resources                                                           ← pushed
 1a29dcb fix(or): RewriteRecipeDiscovery activation guard works with leaf recipes
 fedfaf4 fix(test): adapt 4 launcher/polyglot test assertions to OR/Maven contracts
 d3f3313 test(gradle): update brittle plugin-count literal 9 → 10 (not OR-related)
 ```
 
-`a7e72f7` + `9b942d7` together unblock cluster 1/3/5 in `sbm-recipes-boot-upgrade`.
-The first commit alone is insufficient: it routes `spring.factories` paths into
-`propertiesPaths`, but `PropertiesParser.parseInputs` re-filters via
-`acceptedInputs` → `accept(Path)` → `endsWith(".properties")`, dropping the
-resource silently. The second commit switches `getInputs` to the 4-arg
-`Parser.Input` constructor with `synthetic=true`, which makes
-`Parser.accept(Input)` return true unconditionally and bypasses the path-extension
-re-check (existing pattern in `MavenModuleParser.parseSourceSet:250`).
+The 2 local commits live as patches at
+`docs/patches/spring-rewrite-commons/0001-...patch` and `0002-...patch`. They
+are required for `sbm-recipes-boot-upgrade` to be green in CI / on a fresh
+clone. Push from a host with GitHub creds:
+
+```bash
+git clone https://github.com/promptics/spring-rewrite-commons.git
+cd spring-rewrite-commons && git checkout bump-or-8.80.1
+git am /path/to/docs/patches/spring-rewrite-commons/0001-...patch
+git am /path/to/docs/patches/spring-rewrite-commons/0002-...patch
+git push origin bump-or-8.80.1
+```
+
+`a7e72f7` + `2e31a58` together unblock cluster 1/3/5 in `sbm-recipes-boot-upgrade`.
+`80b74fc` fixes the nested-module duplicate-resource bug
+(`CreateAutoconfigurationActionTest.moduleInsideModuleMavenSetup`) by setting
+`reactorProjects` on every module (was root-only, leaving non-root modules
+blind to sub-modules) and restricting `pathsToOtherMavenProjects` to strict
+descendants (parents/siblings would over-filter the leaf's own resources).
 
 To rebuild and reinstall locally after edits (avoid pulling
 gradle-tooling-api which the sandbox cannot reach at repo.gradle.org):
@@ -321,117 +333,55 @@ push to PR #16.
 
 ## sbm-recipes-boot-upgrade — current status
 
-Test count: **184 tests, 1 failure + 1 error + 4 skipped**. From the original
-19 broken (12F + 7E), 17 are now green; 2 remain. Standalone:
+**184 tests, 0 failures, 0 errors, 4 skipped — fully green.** Module is
+activated in root `pom.xml`. From the original 19 broken (12F + 7E), all
+resolved.
+
 ```bash
 mvn -pl components/sbm-recipes-boot-upgrade test -Dspring-javaformat.skip=true
 ```
 
-### Resolved this session
+### Resolution summary
 
 | Cluster | Test(s) | Resolution |
 |---------|---------|------------|
-| 1 | `CreateAutoconfigurationActionTest` (5/6 green) | Fork commits `a7e72f7` + `9b942d7` (synthetic-input parser fix). 1 leftover: `moduleInsideModuleMavenSetup` — see "Remaining" below. |
+| 1 | `CreateAutoconfigurationActionTest` (6/6) | Fork commits `a7e72f7` + `2e31a58` (synthetic-input) for 5; `80b74fc` (nested-module reactorProjects/descendants-only) for `moduleInsideModuleMavenSetup`. |
 | 2 | `RedeclaredDependenciesFinderTest` (3 errors) | Added `<modules>` declarations to multi-module fixture poms; switched single-module test to root path. |
-| 3 | `BootHasAutoconfigurationConditionTest` (2F) | Subsumed by fork commits `a7e72f7` + `9b942d7`. |
-| 4 | `Boot_27_30_UpgradeReplaceJohnzonDependenciesTest`, `UpgradeDepenenciesMigrationTest`, `UpdatePropertyTest` (4 fixtures) | Updated expected literals: `<properties>` block preservation (synthetic test pom), 3-space `<parent>` indent fidelity, yaml writer dedup of duplicate `sql.init.password`/`username` keys. |
-| 5 | `SpringFactoriesHelperTest` (1F) | Subsumed by fork commits `a7e72f7` + `9b942d7`. |
-| 6 | `DatabaseDriverGaeSectionBuilderTest` | Refactored `DatabaseDriverGaeFinder` to fall back to scanning `ClasspathDependencies` jar entries when OR 8.80.1's `JavaSourceSet` doesn't resolve the FQCN (it only includes the transitive closure of referenced types now). |
-| 8 | `HazelcastHibernateRemovedReportSectionTest` | `com.hazelcast:hazelcast-hibernate` (bare) was never published to Maven Central. Switched fixture to the real `hazelcast-hibernate5:1.3.2` and broadened the recipe regex (`hazelcast-hibernate.*\:.*`) so it actually catches the artifacts that exist. Both the recipe and the test text-comparison were updated together. |
+| 3 | `BootHasAutoconfigurationConditionTest` (2F) | Subsumed by fork commits `a7e72f7` + `2e31a58`. |
+| 4 | `Boot_27_30_UpgradeReplaceJohnzonDependenciesTest`, `UpgradeDepenenciesMigrationTest`, `UpdatePropertyTest` (4 fixtures) | Updated expected literals: `<properties>` block preservation, 3-space `<parent>` indent fidelity, yaml writer dedup of duplicate `sql.init.password`/`username` keys. |
+| 5 | `SpringFactoriesHelperTest` (1F) | Subsumed by fork commits `a7e72f7` + `2e31a58`. |
+| 6 | `DatabaseDriverGaeSectionBuilderTest` | Refactored `DatabaseDriverGaeFinder` to fall back to scanning `ClasspathDependencies` jar entries when OR 8.80.1's `JavaSourceSet` doesn't resolve the FQCN. |
+| 7 | `Boot_24_25_UpdateDependenciesRecipeTest.updateWithParentPom` | Migrated from `RecipeIntegrationTestSupport` (filesystem fixture) to `TestProjectContext` to dodge a javac `Assert.checkNonNull` failure in `JavaCompiler.processAnnotations` triggered by OR's `ReloadableJava21Parser` under JDK 21 (fired regardless of fixture content). |
+| 8 | `HazelcastHibernateRemovedReportSectionTest` | `com.hazelcast:hazelcast-hibernate` (bare) was never published to Maven Central. Switched fixture to the real `hazelcast-hibernate5:1.3.2` and broadened the recipe regex (`hazelcast-hibernate.*\:.*`). |
 
-### Remaining (2 tests, both real bugs not env)
+### Plus
 
-#### `CreateAutoconfigurationActionTest.moduleInsideModuleMavenSetup` — nested-module duplicate-resource bug in launcher
+- `ControlledInstantiationOfExecutionContextTest`: aligned with sbm-core's
+  exception list (added `SbmCoreConfig` + `OpenRewriteTestSupport`) so
+  reactor-mode `mvn test` doesn't fail on this module's classpath.
+- Module activation committed in `pom.xml` (`<module>components/sbm-recipes-boot-upgrade</module>`).
 
-Setup: 3-level Maven nesting (`root → app → app/spring-app`) with `spring.factories` only in the leaf. After parsing, the resource set contains BOTH the leaf's `pom.xml` AND `spring.factories` listed **twice**. Action runs and "succeeds" but the second-hop assertion checking the spring.factories file is unique (`hasSize(1)`) fails.
+### Open work
 
-DEBUG showed:
-```
-DEBUG-RES: <root>/pom.xml :: Document
-DEBUG-RES: <root>/app/pom.xml :: Document
-DEBUG-RES: <root>/app/spring-app/pom.xml :: Document
-DEBUG-RES: <root>/app/spring-app/pom.xml :: Document          ← dup
-DEBUG-RES: <root>/app/spring-app/.../spring.factories :: File
-DEBUG-RES: <root>/app/spring-app/.../spring.factories :: File ← dup
-```
-
-Likely root cause: `MavenModuleParser.pathsToOtherMavenProjects` uses
-`mavenProject.getCollectedProjects()` which has subtle semantics for nested
-modules — the leaf's resources end up not being filtered out of an
-intermediate module's `parse()` call, so they get collected once by the
-intermediate parse and once by the leaf parse. The 2-level nesting case
-(`multiMavenModule`, sibling modules) works fine; only 3-level fails.
-
-**Fix likely lives in spring-rewrite-commons** (`pathsToOtherMavenProjects` or
-the path-prefix filter in `parse()`). Needs another fork roundtrip. Estimated
-effort: 1–2h to reproduce in a launcher unit test, find the off-by-one in
-nesting traversal, and ship a patch. **Not blocking module activation if you
-accept 1 known-broken test temporarily.**
-
-#### `Boot_24_25_UpdateDependenciesRecipeTest.updateWithParentPom` — javac AssertionError under JDK 21 + OR 8.80.1
-
-Stack:
-```
-Caused by: java.lang.AssertionError
-  at com.sun.tools.javac.util.Assert.error(Assert.java:155)
-  at com.sun.tools.javac.util.Assert.checkNonNull(Assert.java:62)
-  at com.sun.tools.javac.main.JavaCompiler.processAnnotations(JavaCompiler.java:1219)
-  at org.openrewrite.java.isolated.ReloadableJava21Parser.parseInputsToCompilerAst(ReloadableJava21Parser.java:239)
-```
-
-The error fires regardless of whether the fixture's Java sources use any
-annotations (verified by replacing all 5 Lombok-using sources with a single
-empty `class Empty {}`). Replacing Lombok 1.18.22 → 1.18.34 in the fixture
-pom didn't help; deleting 1.18.22 from `~/.m2` didn't help; switching `<java.version>`
-from 11 → 17 didn't help.
-
-Reading the disassembled `ReloadableJava21Parser.parseInputsToCompilerAst`
-bytecode: `compiler.processAnnotations(...)` is called even when the
-parser's `annotationProcessors` field is empty. The javac internal
-assertion fires during `processAnnotations` setup. Suggests an OR-internal
-bug interacting with javac's process-annotations init phase under JDK 21.
-
-This is the **only RecipeIntegrationTestSupport test in the module**; all
-the other 183 tests use `TestProjectContext` (in-memory) which doesn't trip
-the same code path. Possible workarounds:
-1. Migrate the test to `TestProjectContext` (keeps coverage of the recipe but
-   loses the "scan-from-disk" smoke).
-2. Wait for an OR upstream fix (the issue is in OR's Java 21 parser).
-3. Skip the test as JDK21+OR8.80.1 environmental.
-
-**Recommend (1)** — straightforward fixture rewrite, ~30 min. Did not do it
-this session because the user's no-`@Disabled` rule makes me want to confirm
-the migration path first.
+- **2 fork patches still need pushing** (`docs/patches/spring-rewrite-commons/0001-...patch`,
+  `0002-...patch`). Until they land on `bump-or-8.80.1`, CI/fresh clones
+  build the module against an unfixed launcher and hit the original failures.
+- Original `testcode/spring-boot-2.4-to-2.5-example/` fixture is now unused
+  by `Boot_24_25_UpdateDependenciesRecipeTest` (post-migration). Other tests
+  may still reference it — check before removing in a follow-up.
 
 ## Where I left off
 
-- Working tree clean on `claude/issue-6-7/integrate-rewrite-commons`. Module
-  pom-activation is **NOT** committed (still has `<!-- ... -->` around
-  `<module>components/sbm-recipes-boot-upgrade</module>`).
-- Both fork patches landed on `origin/bump-or-8.80.1`
-  (`a7e72f7` + `9b942d7`).
-- The remaining 2 tests are documented above. Activating the module in the
-  reactor while they fail will turn the reactor red. Two paths forward:
-  - **(a)** Activate now and accept 2 known-broken tests as a follow-up debt
-    (write rationale comments on the tests, do NOT @Disable them).
-  - **(b)** Fix the moduleInsideModule bug in the launcher first (fork
-    roundtrip), migrate the broken-jar test to TestProjectContext, then
-    activate.
-
-## Active reactor unchanged
-
-```
-spring-boot-migrator         (root)
-test-helper
-sbm-openrewrite              — 54 tests, all green
-sbm-core                     — 326 tests, 14 skipped (#13 cross-module classpath, deferred)
-recipe-test-support
-sbm-support-boot             — 81 tests, all green ✅
-sbm-support-jee              — 10 tests, 5 pre-existing @Disabled ✅
-sbm-support-weblogic         —  6 tests, all green ✅
-sbm-recipes-jee-to-boot      — 146 tests, 15 pre-existing @Disabled ✅
-sbm-recipes-spring-cloud     —  10 tests, 1 env failure ✅
-```
+- Working tree clean on `claude/issue-6-7/integrate-rewrite-commons`,
+  module `sbm-recipes-boot-upgrade` activated and green.
+- Local `~/.m2` has the synthetic + nested-module-fix launcher
+  (`spring-rewrite-commons-launcher 0.1.0-SNAPSHOT` rebuilt from
+  `/tmp/src/spring-rewrite-commons` on top of `a7e72f7`).
+- Next step: push the 2 patches in `docs/patches/spring-rewrite-commons/`
+  to `promptics/spring-rewrite-commons bump-or-8.80.1` from a host with
+  GitHub creds.
+- After the fork pushes, next module to activate is
+  `sbm-recipes-spring-framework` (per the inactive-modules list above).
 
 ## Known recurring patterns to watch for in remaining modules
 
