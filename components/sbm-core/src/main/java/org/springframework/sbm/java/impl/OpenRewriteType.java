@@ -45,6 +45,14 @@ public class OpenRewriteType implements Type {
 
     private final UUID classDeclId;
 
+    /**
+     * Captured at construction time as a stable fallback for getClassDeclaration() —
+     * UUIDs change when the source file is reparsed (e.g. after addDependencies
+     * triggers DependencyChangeHandler.recompileModuleClasses), but the simple
+     * class name does not.
+     */
+    private final String classDeclSimpleName;
+
     private final RewriteSourceFileHolder<J.CompilationUnit> rewriteSourceFileHolder;
 
     private final JavaRefactoring refactoring;
@@ -54,6 +62,7 @@ public class OpenRewriteType implements Type {
 
     public OpenRewriteType(ClassDeclaration classDeclaration, RewriteSourceFileHolder<J.CompilationUnit> rewriteSourceFileHolder, JavaRefactoring refactoring, ExecutionContext executionContext, JavaParserBuilder javaParserBuilder) {
         this.classDeclId = classDeclaration.getId();
+        this.classDeclSimpleName = classDeclaration.getSimpleName();
         this.classDeclaration = classDeclaration;
         this.rewriteSourceFileHolder = rewriteSourceFileHolder;
         this.refactoring = refactoring;
@@ -215,6 +224,12 @@ public class OpenRewriteType implements Type {
 
                     c = template.apply(getCursor(), classDeclaration.getBody().getCoordinates().lastStatement());
                     requiredImports.forEach(i -> maybeAddImport(i));
+                    // OR 8.80.1's JavaTemplate.apply(lastStatement()) elides the newline
+                    // before the class's closing brace (producing '}}' instead of '}\n}')
+                    // and emits FQNs for parameter types where a short name + import would
+                    // suffice. Re-run the autoformat visitor to restore SBM's prior output
+                    // shape and fix imports.
+                    c = (J.CompilationUnit) new org.openrewrite.java.format.AutoFormatVisitor<ExecutionContext>().visit(c, executionContext);
                 }
                 return c;
             }
@@ -370,9 +385,16 @@ public class OpenRewriteType implements Type {
     }
 
     public J.ClassDeclaration getClassDeclaration() {
-        return rewriteSourceFileHolder.getSourceFile().getClasses().stream()
+        List<J.ClassDeclaration> classes = rewriteSourceFileHolder.getSourceFile().getClasses();
+        return classes.stream()
                 .filter(cd -> cd.getId().equals(classDeclId))
                 .findAny()
+                // Fallback: when the source file has been reparsed (e.g. after
+                // addDependencies → DependencyChangeHandler.recompileModuleClasses)
+                // the UUID changes; match by simple name as a stable identifier.
+                .or(() -> classes.stream()
+                        .filter(cd -> cd.getSimpleName().equals(classDeclSimpleName))
+                        .findAny())
                 .orElseThrow(() -> new RuntimeException("Could not get class declaration for type in '" + rewriteSourceFileHolder.getSourceFile().getSourcePath() + "' with ID '" + classDeclId + "'."));
     }
 

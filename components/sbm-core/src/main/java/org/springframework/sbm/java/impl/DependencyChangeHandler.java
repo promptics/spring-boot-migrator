@@ -169,14 +169,21 @@ public class DependencyChangeHandler {
 
             JavaTypeCache typeCache = new JavaTypeCache();
 
-            // build map of markers
+            // build map of markers, keyed by path relative to the project root —
+            // OR 8.80.1's parseInputs(inputs, baseDir, ctx) relativizes the source path
+            // on the parsed CompilationUnit, so the lookup below would miss any keys
+            // stored as absolute paths.
+            Path baseDir = module.getProjectRootDir().toAbsolutePath().normalize();
             Map<Path, List<Marker>> markerMap = mainJavaSourceSet.stream()
                     .filter(OpenRewriteJavaSource.class::isInstance)
                     .map(OpenRewriteJavaSource.class::cast)
                     .map(OpenRewriteJavaSource::getResource)
                     .map(RewriteSourceFileHolder::getSourceFile)
                     .collect(Collectors.toMap(
-                            (J.CompilationUnit js) -> js.getSourcePath(),
+                            (J.CompilationUnit js) -> {
+                                Path sp = js.getSourcePath();
+                                return sp.isAbsolute() ? baseDir.relativize(sp.toAbsolutePath().normalize()) : sp;
+                            },
                             (J.CompilationUnit js) -> js.getMarkers().getMarkers().stream().filter(Predicate.not(JavaSourceSet.class::isInstance)).toList()
                     ));
 
@@ -195,6 +202,11 @@ public class DependencyChangeHandler {
             // UnsupportedOperationException. The 2-arg overload works for our use case (the
             // javaParser above already owns the JavaTypeCache).
             JavaSourceSet javaSourceSet = JavaSourceSet.build("main", compileClasspath);
+            // ClasspathDependencies tracks the dependency jars on the source's classpath.
+            // Downstream visitors (e.g. OpenRewriteType.addMethod) require it; sources
+            // generated programmatically before the dependency change event won't have one,
+            // so we always (re-)attach a fresh marker derived from the current compileClasspath.
+            ClasspathDependencies classpathDependencies = new ClasspathDependencies(new ArrayList<>(compileClasspath));
 
             List<J.CompilationUnit> sourceFiles = main.stream().map(s -> {
                         List<Marker> newMarkers = new ArrayList<>();
@@ -202,8 +214,12 @@ public class DependencyChangeHandler {
                         if(inheritedMarkers == null) {
                             throw new IllegalStateException("Could not find marker for path '%s' in markerMap: '%s'".formatted(s.getSourcePath(), markerMap));
                         }
-                        newMarkers.addAll(inheritedMarkers);
+                        // Drop any stale ClasspathDependencies; we'll add a fresh one below.
+                        inheritedMarkers.stream()
+                                .filter(Predicate.not(ClasspathDependencies.class::isInstance))
+                                .forEach(newMarkers::add);
                         newMarkers.add(javaSourceSet);
+                        newMarkers.add(classpathDependencies);
                         return s.withMarkers(Markers.build(newMarkers));
                     })
                     .map(J.CompilationUnit.class::cast)
