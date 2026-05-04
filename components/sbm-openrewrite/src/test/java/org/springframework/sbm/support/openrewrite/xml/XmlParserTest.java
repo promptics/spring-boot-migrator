@@ -36,7 +36,6 @@ public class XmlParserTest {
 
     @GitHubIssue("https://github.com/openrewrite/rewrite/issues/1259")
     @Test
-    @Disabled("Experienced in 7.16.3")
     void parseXhtml() {
         String xhtml =
                 "<?xml version='1.0' encoding='UTF-8' ?>\n" +

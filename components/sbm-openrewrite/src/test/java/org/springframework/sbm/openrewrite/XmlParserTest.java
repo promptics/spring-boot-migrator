@@ -33,7 +33,6 @@ import java.util.stream.Stream;
 public class XmlParserTest {
 
     @Test
-    @Disabled("Fails in Rewrite 7.16.3")
     void parseXhtml() {
         String xml =
                 "<?xml version='1.0' encoding='UTF-8' ?>\n" +
