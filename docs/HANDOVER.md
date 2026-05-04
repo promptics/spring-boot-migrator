@@ -110,25 +110,24 @@ HANDOVER versions or `git log` for the full list.)
 ## spring-rewrite-commons fork patches (`origin/bump-or-8.80.1` on `promptics/spring-rewrite-commons`)
 
 ```
-de3e7fe fix(parser): route spring.factories through PropertiesParser              ← LOCAL, NEEDS PUSH
-a223201 fix(maven): skip classpath collection for unparseable sources              ← pushed
-<sha>   fix(maven): detect multi-module via <modules> when packaging is inherited  ← pushed
-<sha>   parser: tolerate empty/blank-project resources                             ← pushed
+9b942d7 fix(parser): mark resource inputs synthetic so PropertiesParser accepts spring.factories  ← pushed
+a7e72f7 fix(parser): route spring.factories through PropertiesParser                              ← pushed
+a223201 fix(maven): skip classpath collection for unparseable sources                              ← pushed
+66eeaaf fix(maven): detect multi-module via <modules> when packaging is inherited                  ← pushed
+7ad628b parser: tolerate empty/blank-project resources                                             ← pushed
 1a29dcb fix(or): RewriteRecipeDiscovery activation guard works with leaf recipes
 fedfaf4 fix(test): adapt 4 launcher/polyglot test assertions to OR/Maven contracts
 d3f3313 test(gradle): update brittle plugin-count literal 9 → 10 (not OR-related)
 ```
 
-`de3e7fe` is the cluster-1 fix needed to unblock `sbm-recipes-boot-upgrade`'s
-`CreateAutoconfigurationActionTest`/`BootHasAutoconfigurationConditionTest`/
-`SpringFactoriesHelperTest` (see "sbm-recipes-boot-upgrade triage" below). It
-lives only in the sandbox at `/tmp/src/spring-rewrite-commons` until pushed
-from a host with GitHub creds. Patch exported at
-`/tmp/sbm-rewrite-commons-patches/0001-fix-parser-route-spring.factories-through-Properties.patch`.
-
-The earlier three `← pushed` patches were re-derived in a prior session
-(the previous sandbox lost them before they reached origin) and pushed via
-`git am` from a host with GitHub creds.
+`a7e72f7` + `9b942d7` together unblock cluster 1/3/5 in `sbm-recipes-boot-upgrade`.
+The first commit alone is insufficient: it routes `spring.factories` paths into
+`propertiesPaths`, but `PropertiesParser.parseInputs` re-filters via
+`acceptedInputs` → `accept(Path)` → `endsWith(".properties")`, dropping the
+resource silently. The second commit switches `getInputs` to the 4-arg
+`Parser.Input` constructor with `synthetic=true`, which makes
+`Parser.accept(Input)` return true unconditionally and bypasses the path-extension
+re-check (existing pattern in `MavenModuleParser.parseSourceSet:250`).
 
 To rebuild and reinstall locally after edits (avoid pulling
 gradle-tooling-api which the sandbox cannot reach at repo.gradle.org):
@@ -320,225 +319,104 @@ After the module is green (env failures aside), commit the activation as
 `build: re-activate components/sbm-recipes-boot-upgrade in the reactor` and
 push to PR #16.
 
-## sbm-recipes-boot-upgrade — detailed triage of remaining 19 failures
+## sbm-recipes-boot-upgrade — current status
 
-Test count baseline: **184 tests, 12 failures + 7 errors + 4 skipped** after
-the prep-fix commits (`d4a3b28f`, `b4e583b0`, `b1feedc8`, `ffc83ce1`) land.
-Standalone:
+Test count: **184 tests, 1 failure + 1 error + 4 skipped**. From the original
+19 broken (12F + 7E), 17 are now green; 2 remain. Standalone:
 ```bash
 mvn -pl components/sbm-recipes-boot-upgrade test -Dspring-javaformat.skip=true
 ```
-Failures cluster as follows (most-impactful first):
 
-### Cluster 1 — `CreateAutoconfigurationActionTest` (6 failures) ❗ NEEDS FORK PATCH
+### Resolved this session
 
-**Root cause**: `spring.factories` files have properties syntax but the
-`.factories` extension. The fork's `RewriteResourceParser.parseResources`
-routes resources to a parser only if `<parser>.accept(path)` returns true;
-`PropertiesParser.accept` checks for the `.properties` extension, so
-`spring.factories` falls through to the `QuarkParser`. `Quark.printAll()`
-returns empty, so the action sees an empty file when reading
-`org.springframework.boot.autoconfigure.EnableAutoConfiguration=...`, never
-generates the `AutoConfiguration.imports` file, and the spring.factories
-resource ends up replaced with empty content / removed entirely.
+| Cluster | Test(s) | Resolution |
+|---------|---------|------------|
+| 1 | `CreateAutoconfigurationActionTest` (5/6 green) | Fork commits `a7e72f7` + `9b942d7` (synthetic-input parser fix). 1 leftover: `moduleInsideModuleMavenSetup` — see "Remaining" below. |
+| 2 | `RedeclaredDependenciesFinderTest` (3 errors) | Added `<modules>` declarations to multi-module fixture poms; switched single-module test to root path. |
+| 3 | `BootHasAutoconfigurationConditionTest` (2F) | Subsumed by fork commits `a7e72f7` + `9b942d7`. |
+| 4 | `Boot_27_30_UpgradeReplaceJohnzonDependenciesTest`, `UpgradeDepenenciesMigrationTest`, `UpdatePropertyTest` (4 fixtures) | Updated expected literals: `<properties>` block preservation (synthetic test pom), 3-space `<parent>` indent fidelity, yaml writer dedup of duplicate `sql.init.password`/`username` keys. |
+| 5 | `SpringFactoriesHelperTest` (1F) | Subsumed by fork commits `a7e72f7` + `9b942d7`. |
+| 6 | `DatabaseDriverGaeSectionBuilderTest` | Refactored `DatabaseDriverGaeFinder` to fall back to scanning `ClasspathDependencies` jar entries when OR 8.80.1's `JavaSourceSet` doesn't resolve the FQCN (it only includes the transitive closure of referenced types now). |
+| 8 | `HazelcastHibernateRemovedReportSectionTest` | `com.hazelcast:hazelcast-hibernate` (bare) was never published to Maven Central. Switched fixture to the real `hazelcast-hibernate5:1.3.2` and broadened the recipe regex (`hazelcast-hibernate.*\:.*`) so it actually catches the artifacts that exist. Both the recipe and the test text-comparison were updated together. |
 
-This is a real production regression, not a test artifact — any SBM user
-running this recipe against a real Boot 2.x app will hit the same.
+### Remaining (2 tests, both real bugs not env)
 
-**Fix**: a one-line fork patch routes `*spring.factories` paths through
-`PropertiesParser` explicitly. The patch is committed locally on the fork
-clone in this sandbox and exported for hand-off:
+#### `CreateAutoconfigurationActionTest.moduleInsideModuleMavenSetup` — nested-module duplicate-resource bug in launcher
 
+Setup: 3-level Maven nesting (`root → app → app/spring-app`) with `spring.factories` only in the leaf. After parsing, the resource set contains BOTH the leaf's `pom.xml` AND `spring.factories` listed **twice**. Action runs and "succeeds" but the second-hop assertion checking the spring.factories file is unique (`hasSize(1)`) fails.
+
+DEBUG showed:
 ```
-/tmp/sbm-rewrite-commons-patches/0001-fix-parser-route-spring.factories-through-Properties.patch
-```
-
-Patch content (sha `de3e7fe` on the local fork branch `bump-or-8.80.1`,
-`spring-rewrite-commons-launcher/src/main/java/org/springframework/rewrite/parser/RewriteResourceParser.java`):
-
-```diff
--        else if (propertiesParser.accept(path)) {
-+        else if (propertiesParser.accept(path) || path.toString().endsWith("spring.factories")) {
-+            // spring.factories has properties syntax but lacks the .properties extension,
-+            // so propertiesParser.accept() rejects it. Route it through PropertiesParser
-+            // explicitly so downstream recipes can read its content via Properties.File
-+            // (otherwise it's parsed as Quark and prints empty).
-             propertiesPaths.add(path);
-         }
+DEBUG-RES: <root>/pom.xml :: Document
+DEBUG-RES: <root>/app/pom.xml :: Document
+DEBUG-RES: <root>/app/spring-app/pom.xml :: Document
+DEBUG-RES: <root>/app/spring-app/pom.xml :: Document          ← dup
+DEBUG-RES: <root>/app/spring-app/.../spring.factories :: File
+DEBUG-RES: <root>/app/spring-app/.../spring.factories :: File ← dup
 ```
 
-Push from a host with GitHub creds:
-```bash
-git clone https://github.com/promptics/spring-rewrite-commons.git
-cd spring-rewrite-commons && git checkout bump-or-8.80.1
-git am /path/to/0001-fix-parser-route-spring.factories-through-Properties.patch
-git push origin bump-or-8.80.1
+Likely root cause: `MavenModuleParser.pathsToOtherMavenProjects` uses
+`mavenProject.getCollectedProjects()` which has subtle semantics for nested
+modules — the leaf's resources end up not being filtered out of an
+intermediate module's `parse()` call, so they get collected once by the
+intermediate parse and once by the leaf parse. The 2-level nesting case
+(`multiMavenModule`, sibling modules) works fine; only 3-level fails.
+
+**Fix likely lives in spring-rewrite-commons** (`pathsToOtherMavenProjects` or
+the path-prefix filter in `parse()`). Needs another fork roundtrip. Estimated
+effort: 1–2h to reproduce in a launcher unit test, find the off-by-one in
+nesting traversal, and ship a patch. **Not blocking module activation if you
+accept 1 known-broken test temporarily.**
+
+#### `Boot_24_25_UpdateDependenciesRecipeTest.updateWithParentPom` — javac AssertionError under JDK 21 + OR 8.80.1
+
+Stack:
+```
+Caused by: java.lang.AssertionError
+  at com.sun.tools.javac.util.Assert.error(Assert.java:155)
+  at com.sun.tools.javac.util.Assert.checkNonNull(Assert.java:62)
+  at com.sun.tools.javac.main.JavaCompiler.processAnnotations(JavaCompiler.java:1219)
+  at org.openrewrite.java.isolated.ReloadableJava21Parser.parseInputsToCompilerAst(ReloadableJava21Parser.java:239)
 ```
 
-After the patch lands, the cluster reduces but doesn't go to zero. With the
-patch applied locally I observed the test counts go from `6 fail` →
-`3 failures + 3 errors`. The remaining failures are because, after the
-properties file *is* parsed correctly, the action's
-`removeAutoConfigKeyFromSpringFactories` calls `replace(...)` which appears to
-remove the resource from the resource set entirely (instead of replacing
-in-place) — so the 6 tests that all expect the spring.factories resource to
-still exist after the action runs (`itDeletesSourceWhenMovedToNewFile`,
-`autoConfigurationImportsContent`, `shouldMoveMultipleProperties`, etc.) all
-fail in the second hop. That second hop probably traces to `replace()` semantics
-on `ProjectResourceSet` after OR 8.80.1, similar to the type-wrap fix in
-`Module.search` (commit `51fa0826`). I did **not** debug it to root cause.
+The error fires regardless of whether the fixture's Java sources use any
+annotations (verified by replacing all 5 Lombok-using sources with a single
+empty `class Empty {}`). Replacing Lombok 1.18.22 → 1.18.34 in the fixture
+pom didn't help; deleting 1.18.22 from `~/.m2` didn't help; switching `<java.version>`
+from 11 → 17 didn't help.
 
-**Estimated effort**: 30 min once the fork patch lands, to investigate the
-`replace()` semantics. If `Module.search` is any guide, the fix lives in
-sbm-core's `ProjectResourceSet`/`Module` plumbing.
+Reading the disassembled `ReloadableJava21Parser.parseInputsToCompilerAst`
+bytecode: `compiler.processAnnotations(...)` is called even when the
+parser's `annotationProcessors` field is empty. The javac internal
+assertion fires during `processAnnotations` setup. Suggests an OR-internal
+bug interacting with javac's process-annotations init phase under JDK 21.
 
-### Cluster 2 — `RedeclaredDependenciesFinderTest` (3 errors)
+This is the **only RecipeIntegrationTestSupport test in the module**; all
+the other 183 tests use `TestProjectContext` (in-memory) which doesn't trip
+the same code path. Possible workarounds:
+1. Migrate the test to `TestProjectContext` (keeps coverage of the recipe but
+   loses the "scan-from-disk" smoke).
+2. Wait for an OR upstream fix (the issue is in OR's Java 21 parser).
+3. Skip the test as JDK21+OR8.80.1 environmental.
 
-```
-shouldFindDependencyRedefinedBomVersion: IllegalArgument Could not find expected MavenResolutionResult for module1/pom.xml
-shouldReportSameVersion:                IllegalArgument Could not find expected MavenResolutionResult for module1/pom.xml
-shouldIgnoreWithoutDependencyManagement: NoSuchElement No value present
-```
+**Recommend (1)** — straightforward fixture rewrite, ~30 min. Did not do it
+this session because the user's no-`@Disabled` rule makes me want to confirm
+the migration path first.
 
-**Hypothesis**: OR 8.80.1's Maven parser attaches `MavenResolutionResult`
-markers via the multi-module pom resolution flow. The fork patch in
-`MavenProjectGraph.isMultiModuleProject` (commit `f5b4e40` on the fork) was
-needed because `MavenXpp3Reader` doesn't resolve parent-inheritance — the
-parent of `module1/pom.xml` is the test's root pom but the test fixture may
-not declare modules in a way the resolver recognises. Worth a 15-min look at
-the fixture poms in this test vs. the working multi-module fixtures in
-`MigrateToSpringCloudConfigServer*`.
+## Where I left off
 
-**Estimated effort**: 1–2 hours. Likely needs another fork patch or a fixture
-adjustment.
-
-### Cluster 3 — `BootHasAutoconfigurationConditionTest` (2 failures)
-
-```
-conditionTests:48        — assertion: expecting true but was false
-itCanDoMultiLine:64      — same
-```
-
-These both assert `condition.evaluate(context)` returns true after setting up
-a context with a `spring.factories` containing
-`EnableAutoConfiguration=...`. **Same root cause as cluster 1** — the
-condition reads spring.factories via the same parser pipeline and gets empty
-content. The fork patch from cluster 1 should fix these as a side-effect.
-
-**Estimated effort**: 0 (subsumed by cluster 1).
-
-### Cluster 4 — `Boot_27_30_UpgradeReplaceJohnzonDependenciesTest` (2 failures) + `UpgradeDepenenciesMigrationTest.migrateEhCacheToSpringBoot3` (1) + `UpdatePropertyTest.runYamlTestsData` (1)
-
-Pom and yaml whitespace fixture drift from OR 8.80.1's writers:
-
-- `Boot_27_30_UpgradeReplaceJohnzonDependenciesTest` — expected pom has the
-  `<parent>` block indented 4 spaces, actual is 3. Plus a `<properties>` block
-  for `maven.compiler.target/source` being preserved that the expected omits.
-  Same `<properties>` drift in `UpgradeDepenenciesMigrationTest`.
-- `UpdatePropertyTest.runYamlTestsData` — yaml output: actual is missing two
-  lines (`sql.init.password: password2`, `sql.init.username: username2`)
-  compared to expected. Likely a duplicate-key-handling change in OR's yaml
-  writer.
-
-**Fix pattern**: update the expected literals in each test (this is the same
-pattern used in `sbm-recipes-jee-to-boot` import-blank-line drift commits
-`195a4b1c` and `0b82bbaf`).
-
-**Estimated effort**: 30 min, mechanical.
-
-### Cluster 5 — `SpringFactoriesHelperTest.detectsFileWithSpringFactories` (1 failure)
-
-Same root cause as cluster 1. Fork patch from cluster 1 should fix.
-
-### Cluster 6 — `DatabaseDriverGaeSectionBuilderTest.checkShouldFailWhenAppEngineDriverIsFoundOnClasspath` (1 failure)
-
-```
-expected: FAILED but was: PASSED
-```
-
-Test sets up a project with the `appengine-api-1.0-sdk` dependency on the
-classpath and expects a precondition check to flag it. Probably classpath
-resolution / `MavenResolutionResult` related — see cluster 2.
-
-**Estimated effort**: 1 hour.
-
-### Cluster 7 — `Boot_24_25_UpdateDependenciesRecipeTest.updateWithParentPom` (1 error)
-
-```
-This could be a broken jar. Activate logging on WARN level for 'org.openrewrite' might reveal more information.
-```
-
-Network / m2 cache problem. Likely needs the spring-boot-starter-parent BOM
-prewarm trick from the handover's "Useful commands" section. Verify by
-running with `-X` and looking for the actual jar that fails.
-
-**Estimated effort**: 15 min if it's just prewarm; longer if it's a real OR
-artifact-download regression.
-
-### Cluster 8 — `HazelcastHibernateRemovedReportSectionTest.withSingleModuleApplicationShouldRender` (1 error)
-
-```
-org.openrewrite.maven.MavenDownloadingException: com.hazelcast:hazelcast-hibernate:3.8.2 failed. Unable to download dependency
-```
-
-Sandbox can't reach the repo that hosts this artifact. Either prewarm
-manually, swap the fixture to use a more accessible artifact, or document as
-env failure. Pre-existing condition unrelated to OR upgrade.
-
-**Estimated effort**: 15 min.
-
-## Cumulative remaining-work estimate
-
-If the fork patch lands first (clusters 1, 3, 5, 6 partially):
-
-| Cluster | Effort | Type |
-|---------|--------|------|
-| 1 (post-patch) | 30 min | sbm-core resource-set replace semantics |
-| 2 | 1–2 hours | OR Maven resolution / fixture drift / fork patch |
-| 4 | 30 min | mechanical fixture updates |
-| 6 | 1 hour | classpath resolution |
-| 7 | 15 min | m2 prewarm |
-| 8 | 15 min | env / fixture |
-
-**Total: 4–6 hours** of focused work, plus the fork roundtrip latency for
-patch #1.
-
-## Pre-existing local fork state
-
-The local fork checkout at `/tmp/src/spring-rewrite-commons` is **1 commit
-ahead of `origin/bump-or-8.80.1`** (the cluster-1 patch). To reset before
-re-pulling:
-```bash
-cd /tmp/src/spring-rewrite-commons
-git reset --hard origin/bump-or-8.80.1
-```
-Or rebuild without resetting (keeps the patch applied locally so cluster 1
-tests pass against the local m2):
-```bash
-mvn -f /tmp/src/spring-rewrite-commons/pom.xml install \
-    -pl spring-rewrite-commons-launcher -am -DskipTests \
-    -Dspring-javaformat.skip=true
-```
-
-## Where I left off (mid-debug context)
-
-- Last debugged in `CreateAutoconfigurationActionTest.autoConfigurationImportsIsGenerated`
-  with temporary `System.out.println` instrumentation in the action's `apply`
-  and `getSpringFactoriesProperties`. Output showed:
-  ```
-  DEBUG-getSpringFactories: print=[] sf=org.openrewrite.quark.Quark
-  ```
-  → diagnosed as the cluster-1 root cause (Quark parser).
-- Applied the fork patch locally and reran. Test count went from `6 fail` to
-  `3 fail + 3 err`. New error pattern was `IndexOutOfBounds` from
-  `getNewAutoConfigFileContents` and `getSpringFactoryFile` (both index 0 of
-  empty list). DEBUG-RES showed only `pom.xml` remaining in the resource set
-  after `action.apply` — i.e. spring.factories was removed (replace lost it)
-  AND the new AutoConfiguration.imports was never added.
-- I reverted **all** debug instrumentation and the local pom-activation. The
-  fork patch is still applied on the local fork checkout (committed there as
-  `de3e7fe`); it is **not** pushed and **not** in any SBM commit. The fork
-  patch file is at `/tmp/sbm-rewrite-commons-patches/0001-...patch`.
+- Working tree clean on `claude/issue-6-7/integrate-rewrite-commons`. Module
+  pom-activation is **NOT** committed (still has `<!-- ... -->` around
+  `<module>components/sbm-recipes-boot-upgrade</module>`).
+- Both fork patches landed on `origin/bump-or-8.80.1`
+  (`a7e72f7` + `9b942d7`).
+- The remaining 2 tests are documented above. Activating the module in the
+  reactor while they fail will turn the reactor red. Two paths forward:
+  - **(a)** Activate now and accept 2 known-broken tests as a follow-up debt
+    (write rationale comments on the tests, do NOT @Disable them).
+  - **(b)** Fix the moduleInsideModule bug in the launcher first (fork
+    roundtrip), migrate the broken-jar test to TestProjectContext, then
+    activate.
 
 ## Active reactor unchanged
 
