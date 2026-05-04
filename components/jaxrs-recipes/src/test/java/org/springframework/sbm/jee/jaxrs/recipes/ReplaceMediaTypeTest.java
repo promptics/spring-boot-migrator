@@ -519,7 +519,7 @@ class ReplaceMediaTypeTest {
                         @Path("/hello")
                         class ControllerClass {
                             @Path("/json/{name}")
-                            @RequestMapping(value = "/json/{name}", produces = {"image/jpeg", "image/gif", "image/png", MediaType.APPLICATION_XML}, consumes = "application/json", method = RequestMethod.POST)"
+                            @RequestMapping(value = "/json/{name}", produces = {"image/jpeg", "image/gif", "image/png", MediaType.APPLICATION_XML}, consumes = "application/json", method = RequestMethod.POST)
                             public String getHelloWorldJSON(@PathParam("name") String name) {
                                 return "Hello";
                             }
@@ -536,7 +536,7 @@ class ReplaceMediaTypeTest {
                         @Path("/hello")
                         class ControllerClass {
                             @Path("/json/{name}")
-                            @RequestMapping(value = "/json/{name}", produces = {"image/jpeg", "image/gif", "image/png", MediaType.APPLICATION_XML_VALUE}, consumes = "application/json", method = RequestMethod.POST)"
+                            @RequestMapping(value = "/json/{name}", produces = {"image/jpeg", "image/gif", "image/png", MediaType.APPLICATION_XML_VALUE}, consumes = "application/json", method = RequestMethod.POST)
                             public String getHelloWorldJSON(@PathParam("name") String name) {
                                 return "Hello";
                             }
