@@ -43,7 +43,10 @@ public class ImportSpringXmlConfigXmlToJavaConfigurationActionTest {
     @Test
     void oneXmlBeansFile() {
         String pkgName = TestProjectContext.getDefaultPackageName();
-        Path projectRootDirectory = Path.of("./fake/projects/something").toAbsolutePath().normalize();
+        // TestProjectContext.build() walks-and-deletes the projectRoot, so the safety
+        // guard requires it to live under <cwd>/target/. The original ./fake/projects
+        // path was outside that and triggered the guard.
+        Path projectRootDirectory = Path.of("./target/fake-projects/something").toAbsolutePath().normalize();
 
         String xmlSample =
                 "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n" + 
@@ -158,7 +161,10 @@ public class ImportSpringXmlConfigXmlToJavaConfigurationActionTest {
         List<? extends JavaSource> resources = ctx.getProjectJavaSources().list();
         assertThat(resources).hasSize(1);
         JavaSource r = resources.get(0);
-        assertThat(r.getResource().getAbsolutePath()).isEqualTo(Path.of(".").toAbsolutePath().resolve("src/main/java/").resolve(pkgName.replace(".", "/")).resolve("SpringContextImportConfig.java").normalize());
+        // Resolve against the actual project root (under system tmp by default in
+        // TestProjectContext), not the test cwd — Path.of(".") used to resolve to
+        // the module dir but the project root now lives under java.io.tmpdir.
+        assertThat(r.getResource().getAbsolutePath()).isEqualTo(ctx.getProjectRootDirectory().resolve("src/main/java/").resolve(pkgName.replace(".", "/")).resolve("SpringContextImportConfig.java").normalize());
         assertThat(r.getResource().print())
         .isEqualTo(
                 "package "+pkgName+";\n" + 
