@@ -95,6 +95,7 @@ public class MuleToJavaDSLDBSelectTest extends JavaDSLActionBaseTest {
             assertThat(getGeneratedJavaFile())
                     .isEqualTo("""
                                package com.example.javadsl;
+                               
                                import org.springframework.context.annotation.Bean;
                                import org.springframework.context.annotation.Configuration;
                                import org.springframework.integration.dsl.IntegrationFlow;
@@ -105,7 +106,7 @@ public class MuleToJavaDSLDBSelectTest extends JavaDSLActionBaseTest {
                                @Configuration
                                public class FlowConfigurations {
                                    @Bean
-                                   IntegrationFlow dbFlow(org.springframework.jdbc.core.JdbcTemplate jdbcTemplate) {
+                                   IntegrationFlow dbFlow(JdbcTemplate jdbcTemplate) {
                                        return IntegrationFlows.from(Http.inboundGateway("/")).handle((p, h) -> p)
                                                .log(LoggingHandler.Level.INFO)
                                // TODO: substitute expression language with appropriate java code\s
@@ -149,6 +150,7 @@ public class MuleToJavaDSLDBSelectTest extends JavaDSLActionBaseTest {
             assertThat(getGeneratedJavaFile())
                 .isEqualTo("""
                            package com.example.javadsl;
+                           
                            import org.springframework.context.annotation.Bean;
                            import org.springframework.context.annotation.Configuration;
                            import org.springframework.integration.dsl.IntegrationFlow;
@@ -159,7 +161,7 @@ public class MuleToJavaDSLDBSelectTest extends JavaDSLActionBaseTest {
                            @Configuration
                            public class FlowConfigurations {
                                @Bean
-                               IntegrationFlow dbFlow(org.springframework.jdbc.core.JdbcTemplate jdbcTemplate) {
+                               IntegrationFlow dbFlow(JdbcTemplate jdbcTemplate) {
                                    return IntegrationFlows.from(Http.inboundGateway("/db")).handle((p, h) -> p)
                                            .log(LoggingHandler.Level.INFO)
                            // TODO: substitute expression language with appropriate java code\s

@@ -50,6 +50,7 @@ public class MuleToJavaDSLForeachTest extends JavaDSLActionBaseTest {
             assertThat(getGeneratedJavaFile()).isEqualTo(
                 """
                 package com.example.javadsl;
+                
                 import org.springframework.context.annotation.Bean;
                 import org.springframework.context.annotation.Configuration;
                 import org.springframework.integration.dsl.IntegrationFlow;
@@ -117,6 +118,7 @@ public class MuleToJavaDSLForeachTest extends JavaDSLActionBaseTest {
             assertThat(getGeneratedJavaFile()).isEqualTo(
                     """
                     package com.example.javadsl;
+                    
                     import org.springframework.context.annotation.Bean;
                     import org.springframework.context.annotation.Configuration;
                     import org.springframework.integration.dsl.IntegrationFlow;
@@ -204,6 +206,7 @@ public class MuleToJavaDSLForeachTest extends JavaDSLActionBaseTest {
             assertThat(getGeneratedJavaFile()).isEqualTo(
                     """
                     package com.example.javadsl;
+                    
                     import org.springframework.context.annotation.Bean;
                     import org.springframework.context.annotation.Configuration;
                     import org.springframework.integration.dsl.IntegrationFlow;
@@ -215,7 +218,7 @@ public class MuleToJavaDSLForeachTest extends JavaDSLActionBaseTest {
                     @Configuration
                     public class FlowConfigurations {
                         @Bean
-                        IntegrationFlow foreach(org.springframework.integration.dsl.IntegrationFlow logOneInKannada) {
+                        IntegrationFlow foreach(IntegrationFlow logOneInKannada) {
                             return IntegrationFlows.from(Http.inboundGateway("/foreach")).handle((p, h) -> p)
                                     //TODO: translate expression #[[1, 2, 3, 4]] which must produces an array
                                     // to iterate over

@@ -59,6 +59,7 @@ public class MuleToJavaDSLChoiceTest extends JavaDSLActionBaseTest {
             assertThat(getGeneratedJavaFile())
                     .isEqualTo("""
                                package com.example.javadsl;
+                               
                                import org.springframework.context.annotation.Bean;
                                import org.springframework.context.annotation.Configuration;
                                import org.springframework.integration.dsl.IntegrationFlow;
@@ -139,6 +140,7 @@ public class MuleToJavaDSLChoiceTest extends JavaDSLActionBaseTest {
             assertThat(getGeneratedJavaFile())
                     .isEqualTo("""
                                package com.example.javadsl;
+                               
                                import org.springframework.context.annotation.Bean;
                                import org.springframework.context.annotation.Configuration;
                                import org.springframework.integration.dsl.IntegrationFlow;
@@ -150,7 +152,7 @@ public class MuleToJavaDSLChoiceTest extends JavaDSLActionBaseTest {
                                @Configuration
                                public class FlowConfigurations {
                                    @Bean
-                                   IntegrationFlow choiceFlow(org.springframework.integration.dsl.IntegrationFlow spanishHello) {
+                                   IntegrationFlow choiceFlow(IntegrationFlow spanishHello) {
                                        return IntegrationFlows.from(Http.inboundGateway("/choice")).handle((p, h) -> p)
                                                //FIXME: element is not supported for conversion: <expression-filter/>
                                                //FIXME: element is not supported for conversion: <set-variable/>
@@ -223,6 +225,7 @@ public class MuleToJavaDSLChoiceTest extends JavaDSLActionBaseTest {
             assertThat(projectContext.getProjectJavaSources().list().get(0).print())
                     .isEqualTo("""
                                package com.example.javadsl;
+                               
                                import org.springframework.context.annotation.Bean;
                                import org.springframework.context.annotation.Configuration;
                                import org.springframework.integration.dsl.IntegrationFlow;
@@ -234,7 +237,7 @@ public class MuleToJavaDSLChoiceTest extends JavaDSLActionBaseTest {
                                @Configuration
                                public class FlowConfigurations {
                                    @Bean
-                                   IntegrationFlow choiceFlow(org.springframework.integration.dsl.IntegrationFlow spanishHello) {
+                                   IntegrationFlow choiceFlow(IntegrationFlow spanishHello) {
                                        return IntegrationFlows.from(Http.inboundGateway("/choice")).handle((p, h) -> p)
                                                //FIXME: element is not supported for conversion: <expression-filter/>
                                                //FIXME: element is not supported for conversion: <set-variable/>
@@ -354,6 +357,7 @@ public class MuleToJavaDSLChoiceTest extends JavaDSLActionBaseTest {
               assertThat(getGeneratedJavaFile()).isEqualTo(
                            """
                            package com.example.javadsl;
+                           
                            import org.springframework.context.annotation.Bean;
                            import org.springframework.context.annotation.Configuration;
                            import org.springframework.http.HttpMethod;
@@ -367,7 +371,7 @@ public class MuleToJavaDSLChoiceTest extends JavaDSLActionBaseTest {
                            @Configuration
                            public class FlowConfigurations {
                                @Bean
-                               IntegrationFlow post__insert_application_json_cmb_hsbcnet_ss_sa_entitlement_change_request_config(org.springframework.jdbc.core.JdbcTemplate jdbcTemplate) {
+                               IntegrationFlow post__insert_application_json_cmb_hsbcnet_ss_sa_entitlement_change_request_config(JdbcTemplate jdbcTemplate) {
                                    // FIXME: the base path for Http.inboundGateway must be extracted from http:listener in flow containing apikit:router with config-ref="cmb-hsbcnet-ss-sa-entitlement-change-request-config"
                                    // FIXME: add all JavaDSL generated components between http:listener and apikit:router with config-ref="cmb-hsbcnet-ss-sa-entitlement-change-request-config" into this flow
                                    // FIXME: remove the JavaDSL generated method containing apikit:router with config-ref="cmb-hsbcnet-ss-sa-entitlement-change-request-config"

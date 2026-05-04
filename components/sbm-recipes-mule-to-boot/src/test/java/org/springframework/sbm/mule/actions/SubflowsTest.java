@@ -101,6 +101,7 @@ public class SubflowsTest extends JavaDSLActionBaseTest {
                     .isEqualTo(
                             """
                             package com.example.javadsl;
+
                             import org.springframework.amqp.rabbit.core.RabbitTemplate;
                             import org.springframework.context.annotation.Bean;
                             import org.springframework.context.annotation.Configuration;
@@ -108,19 +109,19 @@ public class SubflowsTest extends JavaDSLActionBaseTest {
                             import org.springframework.integration.dsl.IntegrationFlow;
                             import org.springframework.integration.dsl.IntegrationFlows;
                             import org.springframework.integration.handler.LoggingHandler;
-                                                   
+
                             @Configuration
                             public class FlowConfigurations {
                                 @Bean
-                                IntegrationFlow amqp_muleFlow(org.springframework.amqp.rabbit.connection.ConnectionFactory connectionFactory, org.springframework.integration.dsl.IntegrationFlow outToAMQP) {
+                                IntegrationFlow amqp_muleFlow(org.springframework.amqp.rabbit.connection.ConnectionFactory connectionFactory, IntegrationFlow outToAMQP) {
                                     return IntegrationFlows.from(Amqp.inboundAdapter(connectionFactory, "sbm-integration-queue-one"))
                                             .log(LoggingHandler.Level.INFO, "payload to be sent: #[new String(payload)]")
                                             .gateway(outToAMQP)
                                             .get();
                                 }
-                                                   
+
                                 @Bean
-                                IntegrationFlow outToAMQP(org.springframework.amqp.rabbit.core.RabbitTemplate rabbitTemplate) {
+                                IntegrationFlow outToAMQP(RabbitTemplate rabbitTemplate) {
                                     return flow -> flow
                                             .handle(Amqp.outboundAdapter(rabbitTemplate).exchangeName("sbm-integration-exchange").routingKey("sbm-integration-queue-two"));
                                 }
@@ -137,6 +138,7 @@ public class SubflowsTest extends JavaDSLActionBaseTest {
             assertThat(getGeneratedJavaFile())
                     .isEqualTo("""
                                package com.example.javadsl;
+                               
                                import org.springframework.context.annotation.Bean;
                                import org.springframework.context.annotation.Configuration;
                                import org.springframework.integration.amqp.dsl.Amqp;
@@ -147,7 +149,7 @@ public class SubflowsTest extends JavaDSLActionBaseTest {
                                @Configuration
                                public class FlowConfigurations {
                                    @Bean
-                                   IntegrationFlow amqp_muleFlow(org.springframework.amqp.rabbit.connection.ConnectionFactory connectionFactory, org.springframework.integration.dsl.IntegrationFlow outToUnknown) {
+                                   IntegrationFlow amqp_muleFlow(org.springframework.amqp.rabbit.connection.ConnectionFactory connectionFactory, IntegrationFlow outToUnknown) {
                                        return IntegrationFlows.from(Amqp.inboundAdapter(connectionFactory, "sbm-integration-queue-one"))
                                                .log(LoggingHandler.Level.INFO, "payload to be sent: #[new String(payload)]")
                                                .gateway(outToUnknown)

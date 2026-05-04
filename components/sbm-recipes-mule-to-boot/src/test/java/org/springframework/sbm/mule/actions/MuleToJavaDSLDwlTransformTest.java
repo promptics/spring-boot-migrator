@@ -80,6 +80,7 @@ public class MuleToJavaDSLDwlTransformTest extends JavaDSLActionBaseTest {
                     .isEqualTo(
                             """
                                     package com.example.javadsl;
+                                    
                                     import org.springframework.context.annotation.Bean;
                                     import org.springframework.context.annotation.Configuration;
                                     import org.springframework.integration.dsl.IntegrationFlow;
@@ -133,6 +134,7 @@ public class MuleToJavaDSLDwlTransformTest extends JavaDSLActionBaseTest {
             assertThat(getGeneratedJavaFile())
                     .isEqualTo("""
                             package com.example.javadsl;
+                            
                             import org.springframework.context.annotation.Bean;
                             import org.springframework.context.annotation.Configuration;
                             import org.springframework.integration.dsl.IntegrationFlow;
@@ -167,11 +169,11 @@ public class MuleToJavaDSLDwlTransformTest extends JavaDSLActionBaseTest {
                     .isEqualTo("""
                                        package com.example.javadsl;
                                        import org.springframework.context.annotation.Configuration;
-                                                                          
+
                                        import lombok.Data;
-                                                                          
+
                                        /* Included with the baseline to support bridging between the Flow configuration and the translation implementation. */
-                                                                          
+
                                        @Data
                                        public class TmDwPayload {
                                            private String id;
@@ -179,11 +181,14 @@ public class MuleToJavaDSLDwlTransformTest extends JavaDSLActionBaseTest {
                                            private String sourceType;
                                            private String payload;
                                        }
+
                                        """
                     );
             assertThat(projectContext.getProjectJavaSources().list().get(2).print())
                     .isEqualTo("""
                                        package com.example.javadsl;
+                                                                          
+                                       
                                                                           
                                        import com.fasterxml.jackson.databind.ObjectMapper;
                                                                           
@@ -287,6 +292,7 @@ public class MuleToJavaDSLDwlTransformTest extends JavaDSLActionBaseTest {
             assertThat(getGeneratedJavaFile())
                     .isEqualTo("""
                             package com.example.javadsl;
+                            
                             import org.springframework.context.annotation.Bean;
                             import org.springframework.context.annotation.Configuration;
                             import org.springframework.integration.dsl.IntegrationFlow;
@@ -360,6 +366,7 @@ public class MuleToJavaDSLDwlTransformTest extends JavaDSLActionBaseTest {
             assertThat(getGeneratedJavaFile())
                     .isEqualTo("""
                             package com.example.javadsl;
+                            
                             import org.springframework.context.annotation.Bean;
                             import org.springframework.context.annotation.Configuration;
                             import org.springframework.integration.dsl.IntegrationFlow;
@@ -417,6 +424,7 @@ public class MuleToJavaDSLDwlTransformTest extends JavaDSLActionBaseTest {
             assertThat(getGeneratedJavaFile())
                     .isEqualTo("""
                             package com.example.javadsl;
+                            
                             import org.springframework.context.annotation.Bean;
                             import org.springframework.context.annotation.Configuration;
                             import org.springframework.integration.dsl.IntegrationFlow;

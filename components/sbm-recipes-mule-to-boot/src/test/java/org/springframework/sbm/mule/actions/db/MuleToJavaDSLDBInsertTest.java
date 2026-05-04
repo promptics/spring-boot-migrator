@@ -48,6 +48,7 @@ public class MuleToJavaDSLDBInsertTest extends JavaDSLActionBaseTest {
         runAction(projectContext1 -> {
             assertThat(getGeneratedJavaFile()).isEqualTo("""
                              package com.example.javadsl;
+                             
                              import org.springframework.context.annotation.Bean;
                              import org.springframework.context.annotation.Configuration;
                              import org.springframework.integration.dsl.IntegrationFlow;
@@ -60,7 +61,7 @@ public class MuleToJavaDSLDBInsertTest extends JavaDSLActionBaseTest {
                              @Configuration
                              public class FlowConfigurations {
                                  @Bean
-                                 IntegrationFlow dbFlow(org.springframework.jdbc.core.JdbcTemplate jdbcTemplate) {
+                                 IntegrationFlow dbFlow(JdbcTemplate jdbcTemplate) {
                                      return IntegrationFlows.from(Http.inboundGateway("/")).handle((p, h) -> p)
                                              .log(LoggingHandler.Level.INFO)
                                              // TODO: payload type might not be always LinkedMultiValueMap please change it to appropriate type\s

@@ -42,7 +42,9 @@ public class UnknownFlowTest extends JavaDSLActionBaseTest {
             assertThat(getGeneratedJavaFile())
                     .isEqualTo("""
                         package com.example.javadsl;
+                        
                         import org.springframework.context.annotation.Configuration;
+                        
                         @Configuration
                         public class FlowConfigurations {
                             void catch_exception_strategy() {

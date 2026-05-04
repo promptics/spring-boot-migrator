@@ -52,6 +52,7 @@ public class MuleToJavaDSLTransactionalTest extends JavaDSLActionBaseTest {
             assertThat(getGeneratedJavaFile()).isEqualTo(
                     """
                     package com.example.javadsl;
+                    
                     import org.springframework.context.annotation.Bean;
                     import org.springframework.context.annotation.Configuration;
                     import org.springframework.integration.dsl.IntegrationFlow;
@@ -62,7 +63,7 @@ public class MuleToJavaDSLTransactionalTest extends JavaDSLActionBaseTest {
                     @Configuration
                     public class FlowConfigurations {
                         @Bean
-                        IntegrationFlow example(org.springframework.integration.dsl.IntegrationFlow exampleTransactional_1) {
+                        IntegrationFlow example(IntegrationFlow exampleTransactional_1) {
                             return IntegrationFlows.from(Http.inboundGateway("/transactional")).handle((p, h) -> p)
                                     .gateway(exampleTransactional_1, e -> e.transactional(true))
                                     .get();

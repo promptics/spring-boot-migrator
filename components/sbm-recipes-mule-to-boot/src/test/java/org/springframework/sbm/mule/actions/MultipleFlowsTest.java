@@ -48,6 +48,7 @@ public class MultipleFlowsTest extends JavaDSLActionBaseTest {
             assertThat(getGeneratedJavaFile())
                     .isEqualTo("""
                            package com.example.javadsl;
+                           
                            import org.springframework.context.annotation.Bean;
                            import org.springframework.context.annotation.Configuration;
                            import org.springframework.integration.dsl.IntegrationFlow;
@@ -58,7 +59,7 @@ public class MultipleFlowsTest extends JavaDSLActionBaseTest {
                            @Configuration
                            public class FlowConfigurations {
                                @Bean
-                               IntegrationFlow main_flow(org.springframework.integration.dsl.IntegrationFlow logging) {
+                               IntegrationFlow main_flow(IntegrationFlow logging) {
                                    return IntegrationFlows.from(Http.inboundGateway("/subflows")).handle((p, h) -> p)
                                            .gateway(logging)
                                            .get();

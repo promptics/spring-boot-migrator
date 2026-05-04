@@ -52,6 +52,7 @@ public class MuleToJavaDSLTransformerTest extends JavaDSLActionBaseTest {
             assertThat(getGeneratedJavaFile())
                     .isEqualTo("""
                                package com.example.javadsl;
+
                                import org.springframework.context.annotation.Bean;
                                import org.springframework.context.annotation.Configuration;
                                import org.springframework.integration.dsl.IntegrationFlow;
@@ -59,9 +60,9 @@ public class MuleToJavaDSLTransformerTest extends JavaDSLActionBaseTest {
                                import org.springframework.integration.handler.LoggingHandler;
                                import org.springframework.integration.http.dsl.Http;
                                import org.springframework.integration.transformer.ObjectToStringTransformer;
-                                                              
+
                                import java.nio.charset.StandardCharsets;
-                                                              
+
                                @Configuration
                                public class FlowConfigurations {
                                    @Bean
