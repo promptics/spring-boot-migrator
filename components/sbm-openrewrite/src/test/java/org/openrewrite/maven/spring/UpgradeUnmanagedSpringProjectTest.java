@@ -38,7 +38,10 @@ import java.util.stream.Stream;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.fail;
 
-@Disabled("FIXME:  Disabled with Upgrade to OR 8.1.x. See comment in UpgradeUnmanagedSpringProject")
+@Disabled("DependencyVersionHelper.getLatestReleaseVersion (called from static initializer at line 43) "
+        + "throws ClassCastException 'String cannot be cast to JSONObject'. Independent of OR version. "
+        + "Pre-existing helper bug; needs DependencyVersionHelper to handle response shape changes. "
+        + "Tracked in #19.")
 public class UpgradeUnmanagedSpringProjectTest {
 
     private static final String METRICS_ANNOTATION_VERSION = DependencyVersionHelper.getLatestReleaseVersion("io.dropwizard.metrics", "metrics-annotation").get();

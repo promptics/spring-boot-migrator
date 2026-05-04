@@ -90,7 +90,10 @@ public class OpenRewriteNamedRecipeAdapterIntegrationTest {
     }
 
     @Test
-    @Disabled("FIXME: OR8.1")
+    @Disabled("Test asserts the visitor-error wrapper message ('A problem happened whilst visiting') "
+            + "is propagated as the root cause. Under OR 8.80.1 the recipe-name lookup fails first "
+            + "(ErrorClass isn't a real recipe in the registry), so the test never exercises the "
+            + "visit path. Needs a test-only recipe that loads but throws during visit. Tracked in #19.")
     public void propagateExceptionFromOpenRewriteRecipe() throws IOException {
 
         String actionDescription =
