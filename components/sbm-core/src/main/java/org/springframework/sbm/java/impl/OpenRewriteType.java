@@ -122,7 +122,9 @@ public class OpenRewriteType implements Type {
     public void addAnnotation(String snippet, String annotationImport, String... otherImports) {
         // FIXME: The ClasspathDependencies Marker makes this code incompatible to OpenRewrite
         Optional<ClasspathDependencies> classpathDependencies = rewriteSourceFileHolder.getSourceFile().getMarkers().findFirst(ClasspathDependencies.class);
-        List<Path> classpath = classpathDependencies.get().getDependencies();
+        // Dynamically-added sources (e.g. RAML→JAX-RS generated classes) don't carry this
+        // marker; fall back to an empty classpath rather than NPE.
+        List<Path> classpath = classpathDependencies.map(ClasspathDependencies::getDependencies).orElse(java.util.Collections.emptyList());
 
         GenericOpenRewriteRecipe<JavaIsoVisitor<ExecutionContext>> recipe = new GenericOpenRewriteRecipe<>(() -> {
             return new JavaIsoVisitor<>() {

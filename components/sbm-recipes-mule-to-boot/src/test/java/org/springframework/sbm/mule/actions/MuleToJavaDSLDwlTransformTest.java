@@ -181,17 +181,14 @@ public class MuleToJavaDSLDwlTransformTest extends JavaDSLActionBaseTest {
                                            private String sourceType;
                                            private String payload;
                                        }
-
                                        """
                     );
             assertThat(projectContext.getProjectJavaSources().list().get(2).print())
                     .isEqualTo("""
                                        package com.example.javadsl;
-                                                                          
-                                       
-                                                                          
+
                                        import com.fasterxml.jackson.databind.ObjectMapper;
-                                                                          
+
                                        import java.net.URI;
                                        import java.net.http.HttpClient;
                                        import java.net.http.HttpRequest;

@@ -33,15 +33,15 @@
         <maven-compiler-plugin.version>3.11.0</maven-compiler-plugin.version>
         <java.version>17</java.version>
         <spring-shell.version>2.1.14</spring-shell.version>
-        <openrewrite.version>8.29.0</openrewrite.version>
-        <openrewrite.spring.version>4.32.0</openrewrite.spring.version>
+        <openrewrite.version>8.80.1</openrewrite.version>
+        <openrewrite.spring.version>5.0.5</openrewrite.spring.version>
         <rewrite-migrate-java.version>1.17.0</rewrite-migrate-java.version>
-        <spring-boot.version>3.3.1</spring-boot.version>
+        <spring-boot.version>3.1.2</spring-boot.version>
         <progressbar.version>0.10.0</progressbar.version>
         <testcontainers.version>1.19.1</testcontainers.version>
         <maven-invoker.version>3.2.0</maven-invoker.version>
         <shrinkwrap.resolvers.version>3.1.4</shrinkwrap.resolvers.version>
-        <lombok.version>1.18.30</lombok.version>
+        <lombok.version>1.18.34</lombok.version>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <project.csvParser.outputEncoding>UTF-8</project.csvParser.outputEncoding>
         <generated-sources.dir>src/generated/java</generated-sources.dir>
@@ -70,6 +70,15 @@
 
     <dependencies>
 
+        <!-- Override the spring-boot-dependencies BOM's lombok 1.18.28; that version
+             hits NoSuchFieldError on JCImport.qualid under JDK 21. -->
+        <dependency>
+            <groupId>org.projectlombok</groupId>
+            <artifactId>lombok</artifactId>
+            <version>${lombok.version}</version>
+            <scope>provided</scope>
+        </dependency>
+
         <dependency>
             <groupId>org.openrewrite.maven</groupId>
             <artifactId>rewrite-maven-plugin</artifactId>
@@ -86,12 +95,18 @@
             <artifactId>rewrite-java</artifactId>
         </dependency>
 
-        <dependency>
+        <!-- spring-rewrite-commons-plugin-invoker-polyglot transitively pulls in the
+             gradle plugin invoker which depends on gradle-tooling-api 8.4. That artifact
+             is unavailable from this sandbox (repo.gradle.org returns 403). The only
+             consumer of polyglot is JaxRsThroughAdapterTest$WithRewritePlugin, which is
+             a heavy integration test against external maven/gradle plugins. Excluded
+             until the polyglot artifact is published independently of the gradle module. -->
+        <!--<dependency>
             <groupId>org.springframework.rewrite</groupId>
             <artifactId>spring-rewrite-commons-plugin-invoker-polyglot</artifactId>
             <version>0.1.0-SNAPSHOT</version>
             <scope>test</scope>
-        </dependency>
+        </dependency>-->
 
 
         <dependency>
@@ -186,7 +201,7 @@
         <dependency>
             <groupId>org.openrewrite</groupId>
             <artifactId>rewrite-core</artifactId>
-            <version>8.29.0</version>
+            <version>${openrewrite.version}</version>
             <scope>compile</scope>
         </dependency>
         <dependency>
@@ -198,7 +213,7 @@
         <dependency>
             <groupId>org.openrewrite</groupId>
             <artifactId>rewrite-test</artifactId>
-            <version>8.29.0</version>
+            <version>${openrewrite.version}</version>
             <scope>test</scope>
         </dependency>
 

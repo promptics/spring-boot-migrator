@@ -141,7 +141,7 @@ public class ComplexSubflowsTest extends JavaDSLActionBaseTest {
                                }
                                                       
                                @Bean
-                               IntegrationFlow post__clients__client_identifier__risk_rating_application_json_hbfr_bil_risk_client_rating_mb05_hub_sys_config(IntegrationFlow commonLogStartSubFlow, IntegrationFlow transformRequestSysSubFlow, IntegrationFlow callHubSysSubFlow, IntegrationFlow transformResponseSysSubFlow, IntegrationFlow transformSuccessResponseSubFlow, IntegrationFlow commonLogEndSubFlow, IntegrationFlow set_hbfr_headers_out) {
+                               IntegrationFlow post__clients__client_identifier__risk_rating_application_json_hbfr_bil_risk_client_rating_mb05_hub_sys_config(org.springframework.integration.dsl.IntegrationFlow commonLogStartSubFlow, org.springframework.integration.dsl.IntegrationFlow transformRequestSysSubFlow, org.springframework.integration.dsl.IntegrationFlow callHubSysSubFlow, org.springframework.integration.dsl.IntegrationFlow transformResponseSysSubFlow, org.springframework.integration.dsl.IntegrationFlow transformSuccessResponseSubFlow, org.springframework.integration.dsl.IntegrationFlow commonLogEndSubFlow, org.springframework.integration.dsl.IntegrationFlow set_hbfr_headers_out) {
                                    // FIXME: the base path for Http.inboundGateway must be extracted from http:listener in flow containing apikit:router with config-ref="hbfr-bil-risk-client-rating-mb05-hub-sys-config"
                                    // FIXME: add all JavaDSL generated components between http:listener and apikit:router with config-ref="hbfr-bil-risk-client-rating-mb05-hub-sys-config" into this flow
                                    // FIXME: remove the JavaDSL generated method containing apikit:router with config-ref="hbfr-bil-risk-client-rating-mb05-hub-sys-config"
@@ -158,7 +158,7 @@ public class ComplexSubflowsTest extends JavaDSLActionBaseTest {
                                }
                                                       
                                @Bean
-                               IntegrationFlow callHubSysSubFlow(IntegrationFlow callMQ) {
+                               IntegrationFlow callHubSysSubFlow(org.springframework.integration.dsl.IntegrationFlow callMQ) {
                                    return flow -> flow
                                            .gateway(callMQ);
                                }
