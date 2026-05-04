@@ -61,6 +61,7 @@
         <module>components/sbm-recipes-jee-to-boot</module>
         <module>components/sbm-recipes-spring-cloud</module>
         <module>components/sbm-recipes-boot-upgrade</module>
+        <module>components/sbm-recipes-spring-framework</module>
         <!-- Activate one at a time. Next up:
         -->
 
