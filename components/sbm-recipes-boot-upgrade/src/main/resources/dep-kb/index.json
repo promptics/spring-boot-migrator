@@ -1,0 +1,13 @@
+{
+  "schemaVersion": 1,
+  "records": [
+    {
+      "groupId": "org.springframework.boot",
+      "artifactId": "spring-boot",
+      "fromVersion": "2.7.18",
+      "toVersion": "3.0.0",
+      "researchedAt": "2026-05-19T00:00:00Z",
+      "recordPath": "org.springframework.boot/spring-boot/2.7.18__3.0.0.json"
+    }
+  ]
+}

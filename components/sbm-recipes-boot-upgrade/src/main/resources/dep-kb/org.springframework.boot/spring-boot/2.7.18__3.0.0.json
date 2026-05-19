@@ -1,0 +1,133 @@
+{
+  "schemaVersion": 1,
+  "groupId": "org.springframework.boot",
+  "artifactId": "spring-boot",
+  "fromVersion": "2.7.18",
+  "toVersion": "3.0.0",
+  "researchedAt": "2026-05-19T00:00:00Z",
+  "confidence": "high",
+  "sources": [
+    {
+      "url": "https://github.com/spring-projects/spring-boot/wiki/Spring-Boot-3.0-Migration-Guide",
+      "title": "Spring Boot 3.0 Migration Guide",
+      "kind": "migration-guide"
+    },
+    {
+      "url": "https://github.com/spring-projects/spring-boot/wiki/Spring-Boot-3.0-Release-Notes",
+      "title": "Spring Boot 3.0 Release Notes",
+      "kind": "release-notes"
+    },
+    {
+      "url": "https://docs.spring.io/spring-boot/docs/3.0.0/reference/htmlsingle/#appendix.configuration-metadata.deprecation",
+      "title": "Spring Boot 3.0 reference — configuration metadata deprecations",
+      "kind": "release-notes"
+    }
+  ],
+  "requiredJavaVersion": "17",
+  "transitiveImpact": [
+    {
+      "description": "Migration from Java EE to Jakarta EE: all javax.* packages provided by Java EE APIs move to jakarta.*. Affects servlet, persistence, validation, annotation, transaction, mail, JMS, websocket APIs brought in transitively by Spring Boot starters.",
+      "affectedPackages": [
+        "javax.servlet",
+        "javax.servlet.http",
+        "javax.persistence",
+        "javax.validation",
+        "javax.annotation",
+        "javax.transaction",
+        "javax.mail",
+        "javax.jms",
+        "javax.websocket"
+      ]
+    },
+    {
+      "description": "Hibernate ORM upgraded from 5.6.x to 6.1.x. Brings its own breaking changes — see hibernate-core record.",
+      "affectedPackages": ["org.hibernate"]
+    },
+    {
+      "description": "Jakarta Servlet API 6.0 — drops support for some legacy servlet APIs.",
+      "affectedPackages": ["jakarta.servlet"]
+    }
+  ],
+  "removed": [
+    {
+      "symbol": "org.springframework.boot.web.servlet.support.SpringBootServletInitializer#createRootApplicationContext(javax.servlet.ServletContext)",
+      "kind": "method",
+      "detail": "Method signature uses javax.servlet.ServletContext which no longer exists; replaced by the jakarta.servlet.ServletContext overload.",
+      "replacement": "org.springframework.boot.web.servlet.support.SpringBootServletInitializer#createRootApplicationContext(jakarta.servlet.ServletContext)",
+      "sourceUrl": "https://github.com/spring-projects/spring-boot/wiki/Spring-Boot-3.0-Migration-Guide"
+    },
+    {
+      "symbol": "org.springframework.boot.actuate.autoconfigure.metrics.MetricsProperties$Distribution#getSlaBoundaries()",
+      "kind": "method",
+      "detail": "Removed; use getServiceLevelObjectiveBoundaries() instead. Corresponding property management.metrics.distribution.sla.* removed in favor of management.metrics.distribution.slo.*.",
+      "replacement": "org.springframework.boot.actuate.autoconfigure.metrics.MetricsProperties$Distribution#getServiceLevelObjectiveBoundaries()",
+      "sourceUrl": "https://github.com/spring-projects/spring-boot/wiki/Spring-Boot-3.0-Migration-Guide"
+    }
+  ],
+  "deprecated": [
+    {
+      "symbol": "org.springframework.boot.context.properties.ConfigurationPropertiesBindingPostProcessor#VALIDATOR_BEAN_NAME",
+      "kind": "field",
+      "detail": "Constant retained for compatibility but its use is discouraged; bean lookup now goes through ConfigurationPropertiesBean.",
+      "sourceUrl": "https://github.com/spring-projects/spring-boot/wiki/Spring-Boot-3.0-Release-Notes"
+    }
+  ],
+  "signatureChanges": [
+    {
+      "symbol": "org.springframework.boot.web.servlet.error.ErrorAttributes#getErrorAttributes(org.springframework.web.context.request.WebRequest,java.util.Set)",
+      "kind": "method",
+      "detail": "Implementations that referenced javax.servlet.* in their signatures must switch to jakarta.servlet.*. The interface itself is unchanged, but any subclass overriding servlet-flavored hooks will fail to compile.",
+      "sourceUrl": "https://github.com/spring-projects/spring-boot/wiki/Spring-Boot-3.0-Migration-Guide"
+    }
+  ],
+  "behaviorChanges": [
+    {
+      "symbol": "org.springframework.boot.SpringApplication",
+      "kind": "class",
+      "detail": "Banner mode and shutdown handling refined: applications relying on undocumented order of context-closed listeners may observe different ordering. Audit any code that registers shutdown hooks against the ApplicationContext.",
+      "sourceUrl": "https://github.com/spring-projects/spring-boot/wiki/Spring-Boot-3.0-Release-Notes"
+    },
+    {
+      "symbol": "org.springframework.boot.context.logging.LoggingApplicationListener",
+      "kind": "class",
+      "detail": "Default log file rolling policy aligned with Logback 1.4 defaults; max history and total size cap behavior changed. Apps that depended on the 2.7 defaults must set logging.logback.rollingpolicy.* explicitly.",
+      "sourceUrl": "https://github.com/spring-projects/spring-boot/wiki/Spring-Boot-3.0-Release-Notes"
+    }
+  ],
+  "configKeys": [
+    {
+      "key": "spring.data.cassandra.*",
+      "change": "renamed",
+      "renamedTo": "spring.cassandra.*",
+      "note": "All Cassandra driver/connection properties moved out of spring.data.* into a top-level spring.cassandra.* namespace.",
+      "sourceUrl": "https://github.com/spring-projects/spring-boot/wiki/Spring-Boot-3.0-Migration-Guide"
+    },
+    {
+      "key": "management.metrics.export.*",
+      "change": "renamed",
+      "renamedTo": "management.<registry>.metrics.export.*",
+      "note": "Per-registry metric export properties moved under their registry namespace (e.g. management.prometheus.metrics.export.enabled).",
+      "sourceUrl": "https://github.com/spring-projects/spring-boot/wiki/Spring-Boot-3.0-Migration-Guide"
+    },
+    {
+      "key": "management.metrics.distribution.sla",
+      "change": "renamed",
+      "renamedTo": "management.metrics.distribution.slo",
+      "note": "Terminology change from SLA to SLO.",
+      "sourceUrl": "https://github.com/spring-projects/spring-boot/wiki/Spring-Boot-3.0-Migration-Guide"
+    },
+    {
+      "key": "server.max-http-header-size",
+      "change": "renamed",
+      "renamedTo": "server.max-http-request-header-size",
+      "sourceUrl": "https://github.com/spring-projects/spring-boot/wiki/Spring-Boot-3.0-Release-Notes"
+    },
+    {
+      "key": "spring.mvc.pathmatch.matching-strategy",
+      "change": "default-changed",
+      "note": "Default changed from ant-path-matcher to path-pattern-parser. Apps with controllers using regex path elements may need to opt back in.",
+      "sourceUrl": "https://github.com/spring-projects/spring-boot/wiki/Spring-Boot-3.0-Release-Notes"
+    }
+  ],
+  "notes": "Worked example record seeded with the headline changes from the official Spring Boot 3.0 migration guide and release notes. NOT exhaustive — intended to demonstrate schema usage and seed the KB. A full dep-researcher pass should expand the removed/signatureChanges/configKeys lists with the long tail."
+}
