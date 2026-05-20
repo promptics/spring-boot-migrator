@@ -1,0 +1,16 @@
+{
+  "backend": "local",
+  "local": {
+    "root": "components/sbm-recipes-boot-upgrade/src/main/resources/dep-kb"
+  },
+  "hostedMcp": {
+    "endpoint": null,
+    "tool_prefix": "mcp__depkb__"
+  },
+  "onpremMcp": {
+    "tool_prefix": "mcp__depkb__",
+    "localOverrideRoot": null
+  },
+  "anonymous": false,
+  "stalenessDays": 180
+}

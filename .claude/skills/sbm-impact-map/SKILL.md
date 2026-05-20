@@ -13,7 +13,12 @@ Per-app analyzer. Joins symbol usage in the app's source against the breaking-ch
 
 ## Inputs
 - Path to the app's source root.
-- A set of KB records (or the merged symbol lists extracted from them).
+- Either a set of KB records (passed by `sbm-dep-tree`) or an upgrade frontier to look up.
+
+## KB access
+All KB reads go through the `sbm-dep-kb` provider contract (`lookup`, `analyzeFrontier`, `compose`). Do **not** read files under `dep-kb/` directly — the active backend may be local, hosted MCP, or on-prem MCP.
+
+When `provider.anonymous` is `true`, this skill must perform the symbol-usage join **locally** — never send FQCNs, file paths, or app names to any remote operation. Only the upgrade frontier (groupId/artifactId/version triples) is allowed to cross the backend boundary.
 
 ## Steps
 

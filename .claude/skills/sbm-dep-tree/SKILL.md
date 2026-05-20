@@ -32,20 +32,16 @@ Root orchestrator for the dependency upgrade analysis workflow.
 - Emit one tuple per dep where `fromVersion != toVersion`: `{groupId, artifactId, fromVersion, toVersion}`.
 - This is the *max blast radius* set — bounded by the actual dep tree, not the universe of libraries.
 
-### 4. Consult the KB
-- KB lives at `components/sbm-recipes-boot-upgrade/src/main/resources/dep-kb/`.
-- Lookup path: `<groupId>/<artifactId>/<fromVersion>__<toVersion>.json`.
-- Partition the frontier into `cached` and `to-research`.
+### 4. Consult the KB (via the provider contract)
+- All KB access goes through the `sbm-dep-kb` provider contract. Do **not** read files under `dep-kb/` directly — the active backend may be local, hosted MCP, or on-prem MCP, and the contract hides that.
+- Call `analyzeFrontier(deps)` once with the full frontier. Receive `{cached, missing}`.
+- For multi-hop pairs (e.g. 2.5→3.0 where only 2.5→2.6 / 2.6→2.7 / 2.7→3.0 exist), call `compose(g, a, from, to)` instead of `lookup` — the provider handles the merge.
 
-### 5. Fan out researchers (parallel)
-- For each `to-research` tuple, spawn the `dep-researcher` sub-agent in a single message (multiple Agent tool calls in one response = parallel execution).
-- Batch size: cap at ~8 in flight at a time to keep results manageable. If the frontier is larger, run successive batches.
-- Each sub-agent returns a single JSON record conforming to `dep-kb/schema.json`.
-
-### 6. Write results to the KB
-- After each sub-agent returns, write its record to the canonical path.
-- Update `dep-kb/index.json` (append `{groupId, artifactId, fromVersion, toVersion, researchedAt, sourceUrl}`).
-- The KB is committed to the repo so future runs benefit from this work.
+### 5. Fill the `missing` set
+- For each missing tuple, call `requestResearch({g, a, from, to})`.
+- On the **local** backend this spawns the `dep-researcher` sub-agent. Spawn them in a single message (multiple Agent tool calls in one response = parallel execution); cap at ~8 in flight. If the frontier is larger, run successive batches.
+- On **MCP** backends `requestResearch` blocks on the server-side researcher — fan out by issuing the tool calls in parallel exactly the same way; the provider does not care.
+- Each call returns a single record conforming to `dep-kb/schema.json`. Persistence is the provider's job — do not write files yourself.
 
 ### 7. Hand off to sbm-impact-map (optional)
 - If the user asked for the *app-specific* blast radius (not just the library-level diff), invoke the `sbm-impact-map` skill with:

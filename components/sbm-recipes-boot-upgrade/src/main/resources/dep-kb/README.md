@@ -16,9 +16,15 @@ Spring Boot upgrades touch dozens of transitive dependencies. Researching each o
 dep-kb/
 ├── README.md            ← you are here
 ├── schema.json          ← JSON Schema for records
-├── index.json           ← flat list of all records (lookup index)
+├── provider.json        ← active backend config (local | hosted-mcp | onprem-mcp)
+├── MCP_BACKEND.md       ← MCP tool-surface spec for non-local backends
+├── index.json           ← flat list of all records (lookup index, local backend only)
 └── <groupId>/<artifactId>/<fromVersion>__<toVersion>.json
 ```
+
+## Access
+
+All readers and writers go through the provider contract defined in `.claude/skills/sbm-dep-kb/SKILL.md`. The four operations — `lookup`, `analyzeFrontier`, `requestResearch`, `compose` — hide whether the active backend is the local filesystem, a hosted MCP server, or an on-prem MCP snapshot. Do **not** read files in this directory from any other skill or tool; go through the contract so backend swaps are a config change.
 
 - Group IDs use dots as directory names (e.g. `org.springframework.boot/`).
 - Version pairs are double-underscore separated: `2.7.18__3.0.0.json`.
