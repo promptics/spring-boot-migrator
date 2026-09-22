@@ -164,16 +164,45 @@ for m in sbm-core recipe-test-support sbm-support-boot sbm-support-jee \
 done
 ```
 
-Note that `build-sbm-legacy.yml` triggers on pushes to any branch and builds
-the full reactor. While the split is in progress the reactor is deliberately
-pruned, so that workflow will fail on the intermediate branches. Its trigger
-needs adjusting before the split PRs are opened.
+### The `build-sbm-legacy.yml` workflow does not currently run
+
+Every run of this workflow has failed, on every branch, for months — 44 of 44
+at the time of writing, including commits that only touch documentation. The
+runs complete in 0-25 seconds, where a full reactor build takes roughly 26
+minutes, so none of them reach Maven at all.
+
+The failure is in the `actions/setup-java@v2` step:
+
+```
+##[error]Cache service responded with 400
+```
+
+`setup-java@v2` is deprecated, targets Node 20, and is being forced onto
+Node 24 by the runner. Its `cache: maven` integration no longer negotiates
+successfully with the Actions cache service. `actions/checkout@v3` in the same
+workflow is deprecated for the same reason.
+
+Two separate things therefore need fixing before the split PRs can rely on CI:
+
+- Upgrade the deprecated actions — `actions/setup-java@v2` to `@v5` and
+  `actions/checkout@v3` to a current major — so the workflow reaches the build
+  step at all. This is independent of the upgrade work and affects every
+  branch in the repository.
+- Adjust the trigger. The workflow builds the full reactor on pushes to any
+  branch. While the split is in progress the reactor is deliberately pruned,
+  so it would fail on the intermediate branches even once the actions are
+  fixed.
+
+Until the first of these lands, a red `build` check on any branch carries no
+information about that branch.
 
 ## Open items
 
 - [ ] Split the Lombok bump out of the `sbm-support-boot` commit into PR 1.
 - [ ] Repeat the cherry-pick + `test-compile` check for PRs 2-11.
 - [ ] Decide between the eleven-, nine- and eight-PR variants.
+- [ ] Upgrade the deprecated actions in `build-sbm-legacy.yml` so the workflow
+      reaches its build step; it has never passed in its current form.
 - [ ] Adjust the `build-sbm-legacy.yml` trigger so intermediate branches do
       not fail on the pruned reactor.
 - [ ] Confirm which companion changes in the parser launcher have to land
