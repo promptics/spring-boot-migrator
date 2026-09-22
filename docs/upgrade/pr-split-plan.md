@@ -182,27 +182,95 @@ Node 24 by the runner. Its `cache: maven` integration no longer negotiates
 successfully with the Actions cache service. `actions/checkout@v3` in the same
 workflow is deprecated for the same reason.
 
-Two separate things therefore need fixing before the split PRs can rely on CI:
+Three separate things need fixing before the split PRs can rely on CI:
 
-- Upgrade the deprecated actions — `actions/setup-java@v2` to `@v5` and
-  `actions/checkout@v3` to a current major — so the workflow reaches the build
-  step at all. This is independent of the upgrade work and affects every
-  branch in the repository.
+- Upgrade the deprecated actions, so the workflow reaches the build step at
+  all. This is independent of the upgrade work and affects every branch in the
+  repository.
+- Stop two tests in `sbm-recipes-boot-upgrade` resolving a dependency over the
+  network (see below).
 - Adjust the trigger. The workflow builds the full reactor on pushes to any
   branch. While the split is in progress the reactor is deliberately pruned,
-  so it would fail on the intermediate branches even once the actions are
+  so it would fail on the intermediate branches even once the other two are
   fixed.
 
-Until the first of these lands, a red `build` check on any branch carries no
-information about that branch.
+### What the build actually does once it runs
+
+The first item was applied on a branch to find out
+(`actions/checkout@v3` → `@v7`, `actions/setup-java@v2` → `@v6`). `Setup Java`
+then passes in about seven seconds and Maven runs for the first time. The
+result, on `main` at OpenRewrite 7.35.0:
+
+```
+spring-boot-migrator ............ SUCCESS [  4.417 s]
+test-helper .................... SUCCESS [ 15.027 s]
+sbm-openrewrite ................ SUCCESS [01:46 min]
+sbm-utils ...................... SUCCESS [  0.117 s]
+sbm-core ....................... SUCCESS [02:14 min]
+recipe-test-support ............ SUCCESS [  0.682 s]
+sbm-support-boot ............... SUCCESS [ 54.925 s]
+sbm-recipes-spring-framework ... SUCCESS [ 13.999 s]
+sbm-support-jee ................ SUCCESS [ 16.597 s]
+sbm-recipes-jee-to-boot ........ SUCCESS [01:50 min]
+sbm-recipes-mule-to-boot ....... SUCCESS [01:46 min]
+sbm-recipes-spring-cloud ....... SUCCESS [ 24.682 s]
+openrewrite-spring-recipes ..... SUCCESS [ 12.297 s]
+sbm-support-weblogic ........... SUCCESS [ 12.511 s]
+sbm-recipes-boot-upgrade ....... FAILURE [03:18 min]
+spring-shell ................... SKIPPED
+spring-boot-upgrade ............ SKIPPED
+```
+
+Fourteen of sixteen modules pass. The failing module fails on two tests out
+of 238, both in `ApacheSolrRepositoryBeanFinderTest`:
+
+```
+UncheckedIO Failed to parse pom
+  at org.openrewrite.maven.internal.RawPom.parse
+  at org.openrewrite.maven.internal.MavenPomDownloader.download
+  at ResolvedPom$Resolver.resolveParentPropertiesAndRepositoriesRecursively
+  ...
+  at com.fasterxml.jackson.dataformat.xml.deser.FromXmlParser._nextToken
+```
+
+Both tests call
+`withBuildFileHavingDependencies("org.springframework.data:spring-data-solr:4.3.15")`,
+which makes OpenRewrite resolve that artifact's parent-pom chain over the
+network during a unit test. The artifact exists and its pom returns HTTP 200,
+but under load Maven Central answers with a plain-text throttle notice instead
+of XML, and the XML parser fails on it:
+
+```
+Your ip has exceeded rate limits. Find out more here https://central.sonatype.org/faq/429-error/
+```
+
+This reproduces identically on re-run. GitHub-hosted runners share outbound IP
+ranges and a full reactor build makes many requests to Central, so the
+throttling is the normal condition there rather than an occasional one. These
+two tests should be expected to fail consistently in CI until they stop
+resolving over the network — a local fixture pom, or dropping the live
+dependency if the finder under test only needs the type on the classpath.
+
+### Consequences for this plan
+
+- The baseline is better than the branch history suggests. Fourteen modules
+  are green on `main` before any upgrade work.
+- A red `build` check on any branch carries no information until the first
+  item lands, and only partial information until the second does.
+- The split assumed CI would validate each step. It would not have. Every
+  check would have been red regardless of content.
 
 ## Open items
 
 - [ ] Split the Lombok bump out of the `sbm-support-boot` commit into PR 1.
 - [ ] Repeat the cherry-pick + `test-compile` check for PRs 2-11.
 - [ ] Decide between the eleven-, nine- and eight-PR variants.
-- [ ] Upgrade the deprecated actions in `build-sbm-legacy.yml` so the workflow
-      reaches its build step; it has never passed in its current form.
+- [ ] Upgrade the deprecated actions in `build-sbm-legacy.yml` and
+      `build-sbm-support-rewrite.yml` so the workflow reaches its build step;
+      it has never passed in its current form.
+- [ ] Stop `ApacheSolrRepositoryBeanFinderTest` resolving
+      `spring-data-solr:4.3.15` over the network, so the one failing module
+      can pass.
 - [ ] Adjust the `build-sbm-legacy.yml` trigger so intermediate branches do
       not fail on the pruned reactor.
 - [ ] Confirm which companion changes in the parser launcher have to land
