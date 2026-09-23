@@ -29,6 +29,22 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 public class ApacheSolrRepositoryBeanFinderTest {
 
+    // The finder matches on the declared interface's FQN, so a stub parsed alongside the
+    // sources under test resolves it without downloading the real, since-removed artifact.
+    @Language("java")
+    private static String SOLR_CRUD_REPOSITORY =
+            """
+            package org.springframework.data.solr.repository;
+            public interface SolrCrudRepository<T, ID> {}
+            """;
+
+    @Language("java")
+    private static String PRODUCT =
+            """
+            package foo.bar;
+            public class Product {}
+            """;
+
     @Language("java")
     private static String SOLR_REPO =
             """
@@ -47,8 +63,7 @@ public class ApacheSolrRepositoryBeanFinderTest {
     @Test
     public void givenModuleWithSolrRepository_find_expectNonEmptyList(){
         ProjectContext projectContext = TestProjectContext.buildProjectContext()
-                                                            .withJavaSources(SOLR_REPO)
-                                                            .withBuildFileHavingDependencies("org.springframework.data:spring-data-solr:4.3.15")
+                                                            .withJavaSources(SOLR_CRUD_REPOSITORY, PRODUCT, SOLR_REPO)
                                                             .build();
 
         ApacheSolrRepositoryBeanFinder solrRepositoryBeanFinder = new ApacheSolrRepositoryBeanFinder();
@@ -62,7 +77,6 @@ public class ApacheSolrRepositoryBeanFinderTest {
     public void givenModuleWithoutSolrRepository_find_expectNonEmptyList(){
         ProjectContext projectContext = TestProjectContext.buildProjectContext()
                                                             .withJavaSources(NO_SOLR_REPO)
-                                                            .withBuildFileHavingDependencies("org.springframework.data:spring-data-solr:4.3.15")
                                                             .build();
 
         ApacheSolrRepositoryBeanFinder solrRepositoryBeanFinder = new ApacheSolrRepositoryBeanFinder();
