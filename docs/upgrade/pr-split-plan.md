@@ -236,20 +236,35 @@ UncheckedIO Failed to parse pom
 Both tests call
 `withBuildFileHavingDependencies("org.springframework.data:spring-data-solr:4.3.15")`,
 which makes OpenRewrite resolve that artifact's parent-pom chain over the
-network during a unit test. The artifact exists and its pom returns HTTP 200,
-but under load Maven Central answers with a plain-text throttle notice instead
-of XML, and the XML parser fails on it:
+network during a unit test. The artifact is not missing — its pom returns
+HTTP 200. What comes back for some request in the parent chain is not a pom at
+all. The underlying parser error names the content:
+
+```
+com.fasterxml.jackson.core.JsonParseException:
+  Unexpected close tag </head>; expected </link>.  at [row,col]: [20,6]
+```
+
+`</head>` and `</link>` mean OpenRewrite was handed an **HTML document** and
+asked to deserialise it as a pom. A direct request for the same artifact from
+a different network returned a plain-text notice rather than HTML:
 
 ```
 Your ip has exceeded rate limits. Find out more here https://central.sonatype.org/faq/429-error/
 ```
 
-This reproduces identically on re-run. GitHub-hosted runners share outbound IP
-ranges and a full reactor build makes many requests to Central, so the
-throttling is the normal condition there rather than an occasional one. These
-two tests should be expected to fail consistently in CI until they stop
-resolving over the network — a local fixture pom, or dropping the live
-dependency if the finder under test only needs the type on the classpath.
+Both are Maven Central declining to serve the pom, in different formats for
+different clients. The common factor is that `RawPom.parse` has no guard
+against a non-XML response and fails deep inside Jackson rather than
+reporting a refused download.
+
+This reproduces identically on re-run, and on two separate branches.
+GitHub-hosted runners share outbound IP ranges and a full reactor build makes
+many requests to Central, so this is the normal condition there rather than an
+occasional one. These two tests should be expected to fail consistently in CI
+until they stop resolving over the network — a local fixture pom, or dropping
+the live dependency if the finder under test only needs the type on the
+classpath.
 
 ### Consequences for this plan
 
