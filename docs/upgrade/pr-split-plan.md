@@ -266,27 +266,79 @@ until they stop resolving over the network — a local fixture pom, or dropping
 the live dependency if the finder under test only needs the type on the
 classpath.
 
+### Outcome
+
+With the actions upgraded and the two Solr tests no longer resolving over the
+network, the workflow reaches `BUILD SUCCESS` for the first time:
+
+```
+spring-boot-migrator ............ SUCCESS [  4.016 s]
+test-helper .................... SUCCESS [ 17.624 s]
+sbm-openrewrite ................ SUCCESS [01:42 min]
+sbm-utils ...................... SUCCESS [  0.139 s]
+sbm-core ....................... SUCCESS [02:23 min]
+recipe-test-support ............ SUCCESS [  0.724 s]
+sbm-support-boot ............... SUCCESS [ 57.830 s]
+sbm-recipes-spring-framework ... SUCCESS [ 13.747 s]
+sbm-support-jee ................ SUCCESS [ 16.130 s]
+sbm-recipes-jee-to-boot ........ SUCCESS [01:56 min]
+sbm-recipes-mule-to-boot ....... SUCCESS [01:52 min]
+sbm-recipes-spring-cloud ....... SUCCESS [ 26.431 s]
+openrewrite-spring-recipes ..... SUCCESS [ 12.216 s]
+sbm-support-weblogic ........... SUCCESS [ 11.975 s]
+sbm-recipes-boot-upgrade ....... SUCCESS [03:22 min]
+spring-shell ................... SUCCESS [ 19.412 s]
+spring-boot-upgrade ............ SUCCESS [  6.871 s]
+
+BUILD SUCCESS — 14:26 min
+```
+
+Seventeen modules, not the fifteen seen earlier: `spring-shell` and
+`spring-boot-upgrade` had been `SKIPPED` in every run because the reactor
+aborted at `sbm-recipes-boot-upgrade` before reaching them. Both pass.
+
+The Maven cache also works again — the post-job step stores `~/.m2` and the
+JDK, which `setup-java@v2` could not do. Later runs should be faster than
+14:26.
+
 ### Consequences for this plan
 
-- The baseline is better than the branch history suggests. Fourteen modules
-  are green on `main` before any upgrade work.
-- A red `build` check on any branch carries no information until the first
-  item lands, and only partial information until the second does.
-- The split assumed CI would validate each step. It would not have. Every
-  check would have been red regardless of content.
+- The baseline is better than the branch history suggests. The whole reactor
+  is green on `main` at OpenRewrite 7.35.0 before any upgrade work begins.
+- The split assumed CI would validate each step. Until now it could not have:
+  every check was red regardless of content.
+- Each of the eleven PRs can now get a real verdict, so the per-PR
+  verification in this document is worth running.
+
+### A wider fragility, not addressed
+
+Running `sbm-recipes-boot-upgrade` on a network with degraded access to Maven
+Central produces **13** errors rather than two — `PagingAndSortingHelperTest`,
+`CommonsMultipartResolverHelperTest`, `ConstructorBindingReportSectionTest`,
+`ChangeJavaxPackagesToJakartaTest`, `UpgradeBomTo30Test` and
+`Boot_24_25_UpdateDependenciesRecipeTest` all fail the same way. All of them
+pass on a hosted runner.
+
+So the live-Central dependency is not specific to the Solr tests; it runs
+through this module's unit suite, and Solr was only the case that tipped over
+first under CI's conditions. The suite is green but not hermetic, and that
+will resurface whenever Central throttles harder or a runner's network is
+slower.
 
 ## Open items
 
 - [ ] Split the Lombok bump out of the `sbm-support-boot` commit into PR 1.
 - [ ] Repeat the cherry-pick + `test-compile` check for PRs 2-11.
 - [ ] Decide between the eleven-, nine- and eight-PR variants.
-- [ ] Upgrade the deprecated actions in `build-sbm-legacy.yml` and
-      `build-sbm-support-rewrite.yml` so the workflow reaches its build step;
-      it has never passed in its current form.
-- [ ] Stop `ApacheSolrRepositoryBeanFinderTest` resolving
+- [x] Upgrade the deprecated actions in `build-sbm-legacy.yml` and
+      `build-sbm-support-rewrite.yml` so the workflow reaches its build step.
+- [x] Stop `ApacheSolrRepositoryBeanFinderTest` resolving
       `spring-data-solr:4.3.15` over the network, so the one failing module
       can pass.
 - [ ] Adjust the `build-sbm-legacy.yml` trigger so intermediate branches do
       not fail on the pruned reactor.
+- [ ] Decide whether the remaining live-Central dependencies in
+      `sbm-recipes-boot-upgrade`'s tests are worth removing, given the suite
+      passes on a hosted runner but not on a slower or throttled network.
 - [ ] Confirm which companion changes in the parser launcher have to land
       before PR 1 and PR 7 (see issue #7).
